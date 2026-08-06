@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2, Copy, CopyCheck } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,7 +29,13 @@ export const Route = createFileRoute("/register")({
         property: "og:description",
         content: "Create your AI Job Portal profile in under a minute.",
       },
+      { property: "og:url", content: "/register" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Register Your Profile — AI Job Portal" },
+      { name: "twitter:description", content: "Create your AI Job Portal profile in under a minute." },
     ],
+    links: [{ rel: "canonical", href: "/register" }],
   }),
   component: RegisterPage,
 });
@@ -48,6 +54,7 @@ function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const update = (key: keyof typeof emptyForm, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
