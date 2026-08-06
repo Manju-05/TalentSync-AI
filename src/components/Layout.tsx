@@ -3,13 +3,19 @@ import type { ReactNode } from "react";
 import { Briefcase, Heart } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
-const navItems = [
+type NavItem = {
+  to: string;
+  label: string;
+  icon?: React.ComponentType<{ className?: string }>;
+};
+
+const navItems: NavItem[] = [
   { to: "/", label: "Home" },
   { to: "/register", label: "Register" },
   { to: "/jobs", label: "Find Jobs" },
   { to: "/guidance", label: "Career Guidance" },
   { to: "/saved-jobs", label: "Saved Jobs", icon: Heart },
-] as const;
+];
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
