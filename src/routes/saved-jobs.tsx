@@ -44,7 +44,26 @@ function SavedJobsPage() {
     setJobs(getSavedJobs());
   }
 
-  if (!mounted) return null;
+  if (!mounted) {
+    return (
+      <Layout>
+        <div className="mx-auto max-w-3xl">
+          <h1 className="text-3xl font-bold text-foreground">Saved Jobs</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Roles you've bookmarked across your searches.
+          </p>
+          <div className="mt-8 grid gap-4">
+            {[...Array(2)].map((_, i) => (
+              <div
+                key={i}
+                className="h-32 animate-pulse rounded-2xl border border-border/60 bg-muted"
+              />
+            ))}
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
