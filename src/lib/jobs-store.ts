@@ -16,9 +16,9 @@ export type Job = {
 export type SavedJob = {
   id: string;
   title: string;
-  company?: string;
-  location?: string;
-  url?: string;
+  company?: string | undefined;
+  location?: string | undefined;
+  url?: string | undefined;
   skills: string[];
   savedAt: number;
 };
@@ -74,7 +74,7 @@ export function removeSavedJob(id: string) {
 }
 
 export function isJobSaved(id: string): boolean {
-  return getSavedJobs().some((j) => j.id === job.id);
+  return getSavedJobs().some((j) => j.id === id);
 }
 
 export function getRecentSearches(): string[] {
