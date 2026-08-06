@@ -93,21 +93,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
-    scripts: [
-      {
-        type: "text/javascript",
-        children: `
-          (function() {
-            try {
-              const theme = localStorage.getItem('ai-job-portal-theme') || 'system';
-              const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-              const isDark = theme === 'dark' || (theme === 'system' && systemDark);
-              document.documentElement.classList.toggle('dark', isDark);
-            } catch (e) {}
-          })();
-        `,
-      },
-    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
