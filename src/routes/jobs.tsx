@@ -24,6 +24,7 @@ import {
   clearRecentSearches,
   isJobSaved,
   normalizeSkills,
+  makeJobId,
 } from "@/lib/jobs-store";
 
 const JOB_MATCH_URL = "https://mahakal-ujjain.app.n8n.cloud/webhook/match-jobs";
@@ -268,17 +269,18 @@ function JobsPage() {
               />
             ) : (
               <div className="grid gap-4">
-                {filteredJobs.map((job, i) => (
-                  <JobCard
-                    key={isJobSaved(normalizeSkills(job).join("-")) ? `v-${savedVersion}-${i}` : `${i}`}
-                    job={job}
-                    index={i}
-                    saved={isJobSaved(
-                      `${i}-${(job.job_title ?? job.title ?? "").replace(/\s+/g, "-")}-${(job.company ?? "").replace(/\s+/g, "-")}`.toLowerCase(),
-                    )}
-                    onToggleSave={() => setSavedVersion((v) => v + 1)}
-                  />
-                ))}
+                {filteredJobs.map((job, i) => {
+                  const id = makeJobId(job, i);
+                  return (
+                    <JobCard
+                      key={`${id}-${savedVersion}`}
+                      job={job}
+                      index={i}
+                      saved={isJobSaved(id)}
+                      onToggleSave={() => setSavedVersion((v) => v + 1)}
+                    />
+                  );
+                })}
               </div>
             )}
           </div>
