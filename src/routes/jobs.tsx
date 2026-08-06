@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Loader2, MapPin, Building2, ExternalLink } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -45,10 +45,6 @@ function JobsPage() {
   const [error, setError] = useState<string | null>(null);
   const [jobs, setJobs] = useState<Job[] | null>(null);
 
-  useEffect(() => {
-    const saved = localStorage.getItem("user_id");
-    if (saved) setUserId(saved);
-  }, []);
 
   async function findJobs(e: React.FormEvent) {
     e.preventDefault();
