@@ -83,7 +83,14 @@ function RegisterPage() {
         localStorage.setItem("user_id", id);
         setUserId(id);
       }
-      toast.success("Registration successful!");
+      toast.success("Registration successful!", {
+        action: id
+          ? {
+              label: "Copy User ID",
+              onClick: () => copyUserId(id),
+            }
+          : undefined,
+      });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
       setError(msg);
