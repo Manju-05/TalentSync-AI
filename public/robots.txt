@@ -1,14 +1,37 @@
+User-agent: *
+Allow: /
+Sitemap: /sitemap.xml
+
+# Common search engine crawlers
 User-agent: Googlebot
 Allow: /
 
 User-agent: Bingbot
 Allow: /
 
-User-agent: Twitterbot
+User-agent: Slurp
 Allow: /
 
-User-agent: facebookexternalhit
+User-agent: DuckDuckBot
 Allow: /
 
-User-agent: *
+User-agent: Baiduspider
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+User-agent: facebot
+Allow: /
+
+User-agent: twitterbot
+Allow: /
+
+User-agent: rogerbot
+Allow: /
+
+User-agent: linkedinbot
+Allow: /
+
+User-agent: ia_archiver
 Allow: /

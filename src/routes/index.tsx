@@ -17,7 +17,13 @@ export const Route = createFileRoute("/")({
         property: "og:description",
         content: "Register your profile, get matched with jobs, and receive AI career guidance.",
       },
+      { property: "og:url", content: "/" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "AI Job Portal — Get Matched With Jobs" },
+      { name: "twitter:description", content: "Register your profile, get matched with jobs, and receive AI career guidance." },
     ],
+    links: [{ rel: "canonical", href: "/" }],
   }),
   component: Index,
 });

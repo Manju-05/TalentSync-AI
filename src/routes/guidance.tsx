@@ -23,7 +23,13 @@ export const Route = createFileRoute("/guidance")({
         property: "og:description",
         content: "Ask the AI career coach about skills, roles, and your next move.",
       },
+      { property: "og:url", content: "/guidance" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "AI Career Guidance — AI Job Portal" },
+      { name: "twitter:description", content: "Ask the AI career coach about skills, roles, and your next move." },
     ],
+    links: [{ rel: "canonical", href: "/guidance" }],
   }),
   component: GuidancePage,
 });

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2, Copy, CopyCheck } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,7 +29,13 @@ export const Route = createFileRoute("/register")({
         property: "og:description",
         content: "Create your AI Job Portal profile in under a minute.",
       },
+      { property: "og:url", content: "/register" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Register Your Profile — AI Job Portal" },
+      { name: "twitter:description", content: "Create your AI Job Portal profile in under a minute." },
     ],
+    links: [{ rel: "canonical", href: "/register" }],
   }),
   component: RegisterPage,
 });
@@ -48,6 +54,7 @@ function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const update = (key: keyof typeof emptyForm, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -76,13 +83,31 @@ function RegisterPage() {
         localStorage.setItem("user_id", id);
         setUserId(id);
       }
-      toast.success("Registration successful!");
+      toast.success("Registration successful!", {
+        action: id
+          ? {
+              label: "Copy User ID",
+              onClick: () => copyUserId(id),
+            }
+          : undefined,
+      });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
       setError(msg);
       toast.error(msg);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function copyUserId(id: string) {
+    try {
+      await navigator.clipboard.writeText(id);
+      setCopied(true);
+      toast.success("User ID copied to clipboard");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Could not copy automatically");
     }
   }
 
@@ -180,13 +205,22 @@ function RegisterPage() {
         {userId && (
           <div className="mt-6 flex items-start gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-6 shadow-sm">
             <CheckCircle2 className="mt-0.5 h-5 w-5 text-primary" />
-            <div>
+            <div className="flex-1">
               <p className="font-semibold text-foreground">Registration successful</p>
               <p className="mt-1 text-sm text-muted-foreground">
                 Your User ID: <span className="font-mono text-primary">{userId}</span> — saved for
                 job matching and career guidance.
               </p>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-full"
+              onClick={() => copyUserId(userId)}
+            >
+              {copied ? <CopyCheck className="mr-1.5 h-4 w-4" /> : <Copy className="mr-1.5 h-4 w-4" />}
+              {copied ? "Copied" : "Copy"}
+            </Button>
           </div>
         )}
       </div>
