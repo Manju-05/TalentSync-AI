@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as GuidanceRouteImport } from './routes/guidance'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as SavedJobsRouteImport } from './routes/saved-jobs'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,18 +35,25 @@ const RegisterRoute = RegisterRouteImport.update({
   path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SavedJobsRoute = SavedJobsRouteImport.update({
+  id: '/saved-jobs',
+  path: '/saved-jobs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/guidance': typeof GuidanceRoute
   '/jobs': typeof JobsRoute
   '/register': typeof RegisterRoute
+  '/saved-jobs': typeof SavedJobsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/guidance': typeof GuidanceRoute
   '/jobs': typeof JobsRoute
   '/register': typeof RegisterRoute
+  '/saved-jobs': typeof SavedJobsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,14 @@ export interface FileRoutesById {
   '/guidance': typeof GuidanceRoute
   '/jobs': typeof JobsRoute
   '/register': typeof RegisterRoute
+  '/saved-jobs': typeof SavedJobsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/guidance' | '/jobs' | '/register'
+  fullPaths: '/' | '/guidance' | '/jobs' | '/register' | '/saved-jobs'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/guidance' | '/jobs' | '/register'
-  id: '__root__' | '/' | '/guidance' | '/jobs' | '/register'
+  to: '/' | '/guidance' | '/jobs' | '/register' | '/saved-jobs'
+  id: '__root__' | '/' | '/guidance' | '/jobs' | '/register' | '/saved-jobs'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +76,7 @@ export interface RootRouteChildren {
   GuidanceRoute: typeof GuidanceRoute
   JobsRoute: typeof JobsRoute
   RegisterRoute: typeof RegisterRoute
+  SavedJobsRoute: typeof SavedJobsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,6 +109,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/saved-jobs': {
+      id: '/saved-jobs'
+      path: '/saved-jobs'
+      fullPath: '/saved-jobs'
+      preLoaderRoute: typeof SavedJobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,17 +124,8 @@ const rootRouteChildren: RootRouteChildren = {
   GuidanceRoute: GuidanceRoute,
   JobsRoute: JobsRoute,
   RegisterRoute: RegisterRoute,
+  SavedJobsRoute: SavedJobsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
