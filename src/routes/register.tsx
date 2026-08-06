@@ -100,6 +100,17 @@ function RegisterPage() {
     }
   }
 
+  async function copyUserId(id: string) {
+    try {
+      await navigator.clipboard.writeText(id);
+      setCopied(true);
+      toast.success("User ID copied to clipboard");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Could not copy automatically");
+    }
+  }
+
   return (
     <Layout>
       <div className="mx-auto max-w-2xl">
