@@ -79,14 +79,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "AI Job Portal" },
+      { name: "description", content: "AI-powered job matching and career guidance portal." },
+      { name: "author", content: "AI Job Portal" },
+      { property: "og:site_name", content: "AI Job Portal" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
@@ -94,6 +92,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+    ],
+    scripts: [
+      {
+        type: "text/javascript",
+        children: `
+          (function() {
+            try {
+              const theme = localStorage.getItem('ai-job-portal-theme') || 'system';
+              const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+              const isDark = theme === 'dark' || (theme === 'system' && systemDark);
+              document.documentElement.classList.toggle('dark', isDark);
+            } catch (e) {}
+          })();
+        `,
+      },
     ],
   }),
   shellComponent: RootShell,
