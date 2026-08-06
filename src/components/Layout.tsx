@@ -1,12 +1,14 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { Briefcase } from "lucide-react";
+import { Briefcase, Heart } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const navItems = [
   { to: "/", label: "Home" },
   { to: "/register", label: "Register" },
   { to: "/jobs", label: "Find Jobs" },
   { to: "/guidance", label: "Career Guidance" },
+  { to: "/saved-jobs", label: "Saved Jobs", icon: Heart },
 ] as const;
 
 export function Layout({ children }: { children: ReactNode }) {
@@ -24,11 +26,13 @@ export function Layout({ children }: { children: ReactNode }) {
                 key={item.to}
                 to={item.to}
                 activeOptions={{ exact: item.to === "/" }}
-                className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-primary data-[status=active]:bg-primary/10 data-[status=active]:text-primary"
+                className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-primary data-[status=active]:bg-primary/10 data-[status=active]:text-primary"
               >
+                {item.icon && <item.icon className="h-4 w-4" />}
                 {item.label}
               </Link>
             ))}
+            <ThemeToggle />
           </div>
         </nav>
       </header>
