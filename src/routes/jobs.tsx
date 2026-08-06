@@ -45,10 +45,6 @@ function JobsPage() {
   const [error, setError] = useState<string | null>(null);
   const [jobs, setJobs] = useState<Job[] | null>(null);
 
-  useEffect(() => {
-    const saved = localStorage.getItem("user_id");
-    if (saved) setUserId(saved);
-  }, []);
 
   async function findJobs(e: React.FormEvent) {
     e.preventDefault();
