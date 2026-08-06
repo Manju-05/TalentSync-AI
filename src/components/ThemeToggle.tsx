@@ -11,7 +11,7 @@ export function ThemeToggle() {
   }, []);
 
   function cycle() {
-    const next: Theme = theme === "light" ? "dark" : "light";
+    const next: Theme = theme === "dark" ? "light" : "dark";
     setThemeState(next);
     setTheme(next);
   }
