@@ -1,14 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Loader2, Sparkles } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import { Loader2, Send, Bot, User, Trash2 } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-// Placeholder webhook — replace with the real career guidance endpoint.
 const GUIDANCE_URL = "https://mahakal-ujjain.app.n8n.cloud/webhook/career-guidance";
+
+type ChatMessage = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+};
 
 export const Route = createFileRoute("/guidance")({
   head: () => ({
@@ -16,59 +22,87 @@ export const Route = createFileRoute("/guidance")({
       { title: "AI Career Guidance — AI Job Portal" },
       {
         name: "description",
-        content: "Ask the AI career coach about skills, roles, and your next career move.",
+        content: "Chat with the AI career coach about skills, roles, and your next career move.",
       },
       { property: "og:title", content: "AI Career Guidance — AI Job Portal" },
       {
         property: "og:description",
-        content: "Ask the AI career coach about skills, roles, and your next move.",
+        content: "Chat with the AI career coach about skills, roles, and your next move.",
       },
       { property: "og:url", content: "/guidance" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "AI Career Guidance — AI Job Portal" },
-      { name: "twitter:description", content: "Ask the AI career coach about skills, roles, and your next move." },
+      {
+        name: "twitter:description",
+        content: "Chat with the AI career coach about skills, roles, and your next move.",
+      },
     ],
     links: [{ rel: "canonical", href: "/guidance" }],
   }),
   component: GuidancePage,
 });
 
+const SUGGESTIONS = [
+  "What skills should I learn next?",
+  "Are there openings matching my skills?",
+  "How do I improve my resume?",
+];
+
 function GuidancePage() {
   const [userId, setUserId] = useState("");
   const [question, setQuestion] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [answer, setAnswer] = useState<string | null>(null);
+  const endRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem("user_id");
-    if (saved) setUserId(saved);
-  }, []);
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, loading]);
 
-  async function ask(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, [loading]);
+
+  async function send(text: string) {
+    const trimmed = text.trim();
+    if (!trimmed || !userId.trim() || loading) return;
+
     setError(null);
-    setAnswer(null);
+    setQuestion("");
+    setMessages((prev) => [
+      ...prev,
+      { id: `u-${Date.now()}`, role: "user", content: trimmed },
+    ]);
+    setLoading(true);
+
     try {
       const res = await fetch(GUIDANCE_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: userId, question }),
+        body: JSON.stringify({ user_id: userId, question: trimmed }),
       });
       if (!res.ok) throw new Error(`Request failed (${res.status})`);
-      const text = await res.text();
-      let data: any = text;
+      const raw = await res.text();
+      let data: any = raw;
       try {
-        data = text ? JSON.parse(text) : "";
+        data = raw ? JSON.parse(raw) : "";
       } catch {
         /* keep raw text */
       }
       if (Array.isArray(data)) data = data[0] ?? {};
       const reply =
         typeof data === "string" ? data : (data.response ?? data.answer ?? data.output ?? "");
-      setAnswer(reply || "No response received.");
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `a-${Date.now()}`,
+          role: "assistant",
+          content: reply || "No response received.",
+        },
+      ]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not get a response");
     } finally {
@@ -76,63 +110,141 @@ function GuidancePage() {
     }
   }
 
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    void send(question);
+  }
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      void send(question);
+    }
+  }
+
   return (
     <Layout>
-      <div className="mx-auto max-w-2xl">
-        <h1 className="text-3xl font-bold text-foreground">AI Career Guidance</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Ask anything about your skills, roles or next career step.
-        </p>
+      <div className="mx-auto flex h-[calc(100vh-11rem)] max-w-3xl flex-col">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">AI Career Guidance</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Chat with your AI career coach — the whole conversation stays on screen.
+            </p>
+          </div>
+          {messages.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="rounded-full"
+              onClick={() => setMessages([])}
+            >
+              <Trash2 className="mr-1.5 h-4 w-4" />
+              Clear
+            </Button>
+          )}
+        </div>
 
-        <form
-          onSubmit={ask}
-          className="mt-8 space-y-5 rounded-2xl border border-border/60 bg-card p-6 shadow-sm sm:p-8"
-        >
-          <div className="space-y-2">
-            <Label>User ID</Label>
-            <Input
-              required
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
-              placeholder="Your user ID"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Your Question</Label>
-            <Textarea
-              required
-              rows={5}
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Which skills should I learn to become a senior frontend developer?"
-            />
-          </div>
-          <Button type="submit" disabled={loading} className="w-full rounded-full" size="lg">
-            {loading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Sparkles className="mr-2 h-4 w-4" />
-            )}
-            Ask AI
-          </Button>
-        </form>
+        <div className="mt-5 space-y-2">
+          <Label>User ID</Label>
+          <Input
+            required
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+            placeholder="e.g. user_123"
+          />
+        </div>
+
+        <div className="mt-5 flex-1 overflow-y-auto rounded-2xl border border-border/60 bg-card/50 p-4 shadow-sm sm:p-6">
+          {messages.length === 0 && !loading ? (
+            <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                <Bot className="h-6 w-6 text-primary" />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Ask your first question to start the conversation.
+              </p>
+              <div className="flex flex-wrap justify-center gap-2">
+                {SUGGESTIONS.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => void send(s)}
+                    className="rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-secondary/80"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {messages.map((m) =>
+                m.role === "user" ? (
+                  <div key={m.id} className="flex justify-end gap-3">
+                    <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-primary px-4 py-2.5 text-sm leading-relaxed text-primary-foreground">
+                      <p className="whitespace-pre-wrap">{m.content}</p>
+                    </div>
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary">
+                      <User className="h-4 w-4 text-secondary-foreground" />
+                    </div>
+                  </div>
+                ) : (
+                  <div key={m.id} className="flex gap-3">
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                      <Bot className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="prose prose-sm max-w-none flex-1 text-sm leading-relaxed text-foreground dark:prose-invert prose-headings:text-foreground prose-strong:text-foreground prose-a:text-primary">
+                      <ReactMarkdown>{m.content}</ReactMarkdown>
+                    </div>
+                  </div>
+                ),
+              )}
+
+              {loading && (
+                <div className="flex gap-3">
+                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                    <Bot className="h-4 w-4 text-primary" />
+                  </div>
+                  <p className="animate-pulse text-sm text-muted-foreground">Thinking...</p>
+                </div>
+              )}
+              <div ref={endRef} />
+            </div>
+          )}
+        </div>
 
         {error && (
-          <p className="mt-6 rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <p className="mt-3 rounded-xl bg-destructive/10 px-4 py-2.5 text-sm text-destructive">
             {error}
           </p>
         )}
 
-        {answer && (
-          <div className="mt-6 rounded-2xl border border-primary/30 bg-primary/5 p-6 shadow-sm">
-            <p className="flex items-center gap-2 text-sm font-semibold text-primary">
-              <Sparkles className="h-4 w-4" /> AI Response
-            </p>
-            <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-              {answer}
-            </p>
-          </div>
-        )}
+        <form
+          onSubmit={onSubmit}
+          className="mt-4 flex items-end gap-2 rounded-2xl border border-border/60 bg-card p-2 shadow-sm"
+        >
+          <Textarea
+            ref={inputRef}
+            rows={1}
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            onKeyDown={onKeyDown}
+            placeholder={
+              userId.trim() ? "Ask a follow-up question..." : "Enter your User ID first..."
+            }
+            className="min-h-[44px] resize-none border-0 bg-transparent shadow-none focus-visible:ring-0"
+          />
+          <Button
+            type="submit"
+            size="icon"
+            className="h-10 w-10 shrink-0 rounded-full"
+            disabled={loading || !question.trim() || !userId.trim()}
+            aria-label="Send message"
+          >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          </Button>
+        </form>
       </div>
     </Layout>
   );
