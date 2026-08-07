@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { Briefcase, Heart } from "lucide-react";
+import { Briefcase } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 type NavItem = {
@@ -14,7 +14,6 @@ const navItems: NavItem[] = [
   { to: "/register", label: "Register" },
   { to: "/jobs", label: "Find Jobs" },
   { to: "/guidance", label: "Career Guidance" },
-  { to: "/saved-jobs", label: "Saved Jobs", icon: Heart },
 ];
 
 export function Layout({ children }: { children: ReactNode }) {
