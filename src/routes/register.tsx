@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 import { Loader2, CheckCircle2, Copy, CopyCheck } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -49,25 +50,72 @@ const emptyForm = {
   location: "",
 };
 
+const registerSchema = z.object({
+  full_name: z
+    .string()
+    .trim()
+    .min(2, "Please enter your full name")
+    .max(100, "Name must be under 100 characters")
+    .regex(/^[a-zA-Z\s.'-]+$/, "Name can only contain letters, spaces and . ' -"),
+  email: z.string().trim().email("Enter a valid email address").max(255, "Email is too long"),
+  skills: z
+    .string()
+    .trim()
+    .min(2, "Add at least one skill")
+    .max(300, "Keep skills under 300 characters"),
+  preferred_roles: z
+    .string()
+    .trim()
+    .min(2, "Add at least one preferred role")
+    .max(200, "Keep roles under 200 characters"),
+  experience_level: z.enum(["Fresher", "Junior", "Mid", "Senior"], {
+    message: "Select your experience level",
+  }),
+  location: z
+    .string()
+    .trim()
+    .min(2, "Enter your location")
+    .max(120, "Location must be under 120 characters"),
+});
+
+type FieldErrors = Partial<Record<keyof typeof emptyForm, string>>;
+
 function RegisterPage() {
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
-  const update = (key: keyof typeof emptyForm, value: string) =>
+  const update = (key: keyof typeof emptyForm, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
+    setFieldErrors((prev) => ({ ...prev, [key]: undefined }));
+  };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
     setError(null);
+
+    const parsed = registerSchema.safeParse(form);
+    if (!parsed.success) {
+      const errs: FieldErrors = {};
+      for (const issue of parsed.error.issues) {
+        const key = issue.path[0] as keyof typeof emptyForm;
+        if (key && !errs[key]) errs[key] = issue.message;
+      }
+      setFieldErrors(errs);
+      toast.error("Please fix the highlighted fields");
+      return;
+    }
+    setFieldErrors({});
+
+    setLoading(true);
     try {
       const res = await fetch(REGISTER_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(parsed.data),
       });
       if (!res.ok) throw new Error(`Registration failed (${res.status})`);
       const text = await res.text();
@@ -84,6 +132,7 @@ function RegisterPage() {
         setUserId(id);
       }
       setForm(emptyForm);
+      setFieldErrors({});
       toast.success("Registration successful!", {
         action: id
           ? {
@@ -125,17 +174,15 @@ function RegisterPage() {
           className="mt-8 space-y-5 rounded-2xl border border-border/60 bg-card p-6 shadow-sm sm:p-8"
         >
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Full Name">
+            <Field label="Full Name" error={fieldErrors.full_name}>
               <Input
-                required
                 value={form.full_name}
                 onChange={(e) => update("full_name", e.target.value)}
                 placeholder="Jane Doe"
               />
             </Field>
-            <Field label="Email">
+            <Field label="Email" error={fieldErrors.email}>
               <Input
-                required
                 type="email"
                 value={form.email}
                 onChange={(e) => update("email", e.target.value)}
@@ -144,18 +191,16 @@ function RegisterPage() {
             </Field>
           </div>
 
-          <Field label="Skills (comma separated)">
+          <Field label="Skills (comma separated)" error={fieldErrors.skills}>
             <Input
-              required
               value={form.skills}
               onChange={(e) => update("skills", e.target.value)}
               placeholder="React, Node.js, SQL"
             />
           </Field>
 
-          <Field label="Preferred Roles">
+          <Field label="Preferred Roles" error={fieldErrors.preferred_roles}>
             <Input
-              required
               value={form.preferred_roles}
               onChange={(e) => update("preferred_roles", e.target.value)}
               placeholder="Frontend Developer, Full Stack Engineer"
@@ -163,9 +208,8 @@ function RegisterPage() {
           </Field>
 
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Experience Level">
+            <Field label="Experience Level" error={fieldErrors.experience_level}>
               <Select
-                required
                 value={form.experience_level}
                 onValueChange={(v) => update("experience_level", v)}
               >
@@ -181,9 +225,8 @@ function RegisterPage() {
                 </SelectContent>
               </Select>
             </Field>
-            <Field label="Location">
+            <Field label="Location" error={fieldErrors.location}>
               <Input
-                required
                 value={form.location}
                 onChange={(e) => update("location", e.target.value)}
                 placeholder="Bengaluru, India"
@@ -229,11 +272,20 @@ function RegisterPage() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  error,
+  children,
+}: {
+  label: string;
+  error?: string | undefined;
+  children: React.ReactNode;
+}) {
   return (
     <div className="space-y-2">
       <Label>{label}</Label>
       {children}
+      {error && <p className="text-xs font-medium text-destructive">{error}</p>}
     </div>
   );
 }
