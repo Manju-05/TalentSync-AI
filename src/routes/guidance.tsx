@@ -1,12 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { Loader2, Send, Bot, User, Trash2 } from "lucide-react";
+import { Loader2, Send, Bot, User, Trash2, Paperclip, FileText, X } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+
+const MAX_RESUME_BYTES = 100 * 1024;
+
+type Attachment = { name: string; size: number; dataUrl: string };
 
 const GUIDANCE_URL = "https://mahakal-ujjain.app.n8n.cloud/webhook/career-guidance";
 
@@ -14,6 +19,7 @@ type ChatMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  attachmentName?: string;
 };
 
 export const Route = createFileRoute("/guidance")({
@@ -59,6 +65,30 @@ function GuidancePage() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [streamingId, setStreamingId] = useState<string | null>(null);
   const streamTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [resume, setResume] = useState<Attachment | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  function onPickFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+    if (!isPdf) {
+      toast.error("Only PDF resumes are supported");
+      return;
+    }
+    if (file.size > MAX_RESUME_BYTES) {
+      toast.error(`Resume must be under 100 KB (this file is ${Math.round(file.size / 1024)} KB)`);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onerror = () => toast.error("Could not read that file");
+    reader.onload = () => {
+      setResume({ name: file.name, size: file.size, dataUrl: String(reader.result) });
+      toast.success("Resume attached");
+    };
+    reader.readAsDataURL(file);
+  }
 
   useEffect(() => {
     return () => {
@@ -78,21 +108,41 @@ function GuidancePage() {
 
   async function send(text: string) {
     const trimmed = text.trim();
-    if (!trimmed || !userId.trim() || loading || streamTimer.current) return;
+    if ((!trimmed && !resume) || !userId.trim() || loading || streamTimer.current) return;
 
     setError(null);
     setQuestion("");
+    const attached = resume;
     setMessages((prev) => [
       ...prev,
-      { id: `u-${Date.now()}`, role: "user", content: trimmed },
+      {
+        id: `u-${Date.now()}`,
+        role: "user",
+        content: trimmed,
+        ...(attached ? { attachmentName: attached.name } : {}),
+      },
     ]);
+    setResume(null);
     setLoading(true);
 
     try {
       const res = await fetch(GUIDANCE_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: userId, question: trimmed }),
+        body: JSON.stringify({
+          user_id: userId,
+          question: trimmed,
+          ...(attached
+            ? {
+                resume: {
+                  filename: attached.name,
+                  mime_type: "application/pdf",
+                  size: attached.size,
+                  file_data: attached.dataUrl,
+                },
+              }
+            : {}),
+        }),
       });
       if (!res.ok) throw new Error(`Request failed (${res.status})`);
       const raw = await res.text();
@@ -207,7 +257,13 @@ function GuidancePage() {
                 m.role === "user" ? (
                   <div key={m.id} className="flex justify-end gap-3">
                     <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-primary px-4 py-2.5 text-sm leading-relaxed text-primary-foreground">
-                      <p className="whitespace-pre-wrap">{m.content}</p>
+                      {m.attachmentName && (
+                        <span className="mb-1.5 flex items-center gap-1.5 rounded-lg bg-primary-foreground/15 px-2 py-1 text-xs">
+                          <FileText className="h-3.5 w-3.5" />
+                          {m.attachmentName}
+                        </span>
+                      )}
+                      {m.content && <p className="whitespace-pre-wrap">{m.content}</p>}
                     </div>
                     <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary">
                       <User className="h-4 w-4 text-secondary-foreground" />
@@ -249,8 +305,43 @@ function GuidancePage() {
 
         <form
           onSubmit={onSubmit}
-          className="mt-4 flex items-end gap-2 rounded-2xl border border-border/60 bg-card p-2 shadow-sm"
+          className="mt-4 rounded-2xl border border-border/60 bg-card p-2 shadow-sm"
         >
+          {resume && (
+            <div className="mb-2 flex items-center gap-2 rounded-xl bg-secondary px-3 py-2 text-xs text-secondary-foreground">
+              <FileText className="h-4 w-4 shrink-0 text-primary" />
+              <span className="truncate">{resume.name}</span>
+              <span className="text-muted-foreground">{Math.round(resume.size / 1024)} KB</span>
+              <button
+                type="button"
+                onClick={() => setResume(null)}
+                className="ml-auto rounded-full p-0.5 hover:bg-background"
+                aria-label="Remove resume"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
+          <div className="flex items-end gap-2">
+          <input
+            ref={fileRef}
+            type="file"
+            accept="application/pdf,.pdf"
+            className="hidden"
+            onChange={onPickFile}
+          />
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            className="h-10 w-10 shrink-0 rounded-full"
+            onClick={() => fileRef.current?.click()}
+            disabled={loading || isStreaming}
+            title="Attach resume (PDF, under 100 KB)"
+            aria-label="Attach resume"
+          >
+            <Paperclip className="h-4 w-4" />
+          </Button>
           <Textarea
             ref={inputRef}
             rows={1}
@@ -266,11 +357,17 @@ function GuidancePage() {
             type="submit"
             size="icon"
             className="h-10 w-10 shrink-0 rounded-full"
-            disabled={loading || isStreaming || !question.trim() || !userId.trim()}
+            disabled={
+              loading || isStreaming || (!question.trim() && !resume) || !userId.trim()
+            }
             aria-label="Send message"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>
+          </div>
+          <p className="px-2 pb-1 pt-1.5 text-[11px] text-muted-foreground">
+            Attach your resume as a PDF under 100 KB to get it evaluated.
+          </p>
         </form>
       </div>
     </Layout>
