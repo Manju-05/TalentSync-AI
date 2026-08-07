@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { extractApiError } from "@/lib/api-error";
 
 const MAX_RESUME_BYTES = 100 * 1024;
 
@@ -144,8 +145,8 @@ function GuidancePage() {
             : {}),
         }),
       });
-      if (!res.ok) throw new Error(`Request failed (${res.status})`);
       const raw = await res.text();
+      if (!res.ok) throw new Error(extractApiError(res.status, raw));
       let data: any = raw;
       try {
         data = raw ? JSON.parse(raw) : "";
