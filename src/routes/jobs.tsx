@@ -19,12 +19,7 @@ import { JobCard } from "@/components/JobCard";
 import { JobSkeletonList } from "@/components/JobSkeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
-import {
-  type Job,
-  isJobSaved,
-  normalizeSkills,
-  makeJobId,
-} from "@/lib/jobs-store";
+import { type Job, normalizeSkills, makeJobId } from "@/lib/jobs-store";
 
 const JOB_MATCH_URL = "https://mahakal-ujjain.app.n8n.cloud/webhook/job-updates";
 
@@ -62,7 +57,6 @@ function JobsPage() {
   const [keyword, setKeyword] = useState("");
   const [minSkills, setMinSkills] = useState(0);
   const [sort, setSort] = useState<SortOption>("relevance");
-  const [savedVersion, setSavedVersion] = useState(0);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -276,11 +270,9 @@ function JobsPage() {
                   const id = makeJobId(job, i);
                   return (
                     <JobCard
-                      key={`${id}-${savedVersion}`}
+                      key={id}
                       job={job}
                       index={i}
-                      saved={isJobSaved(id)}
-                      onToggleSave={() => setSavedVersion((v) => v + 1)}
                     />
                   );
                 })}

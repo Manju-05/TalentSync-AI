@@ -1,5 +1,3 @@
-const SAVED_JOBS_KEY = "saved_jobs";
-
 export type Job = {
   job_title?: string;
   title?: string;
@@ -10,16 +8,6 @@ export type Job = {
   url?: string;
   job_url?: string;
   apply_url?: string;
-};
-
-export type SavedJob = {
-  id: string;
-  title: string;
-  company?: string | undefined;
-  location?: string | undefined;
-  url?: string | undefined;
-  skills: string[];
-  savedAt: number;
 };
 
 export function makeJobId(job: Job, index: number): string {
@@ -37,41 +25,3 @@ export function normalizeSkills(job: Job): string[] {
     .filter(Boolean);
 }
 
-export function toSavedJob(job: Job, index: number): SavedJob {
-  return {
-    id: makeJobId(job, index),
-    title: job.job_title ?? job.title ?? "Untitled role",
-    company: job.company,
-    location: job.location,
-    url: job.url ?? job.job_url ?? job.apply_url,
-    skills: normalizeSkills(job),
-    savedAt: Date.now(),
-  };
-}
-
-export function getSavedJobs(): SavedJob[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(SAVED_JOBS_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
-export function saveJob(job: SavedJob) {
-  const saved = getSavedJobs();
-  const exists = saved.find((j) => j.id === job.id);
-  if (exists) return;
-  const updated = [job, ...saved];
-  localStorage.setItem(SAVED_JOBS_KEY, JSON.stringify(updated));
-}
-
-export function removeSavedJob(id: string) {
-  const saved = getSavedJobs().filter((j) => j.id !== id);
-  localStorage.setItem(SAVED_JOBS_KEY, JSON.stringify(saved));
-}
-
-export function isJobSaved(id: string): boolean {
-  return getSavedJobs().some((j) => j.id === id);
-}
