@@ -1,5 +1,4 @@
 const SAVED_JOBS_KEY = "saved_jobs";
-const RECENT_SEARCHES_KEY = "recent_userid_searches";
 
 export type Job = {
   job_title?: string;
@@ -75,26 +74,4 @@ export function removeSavedJob(id: string) {
 
 export function isJobSaved(id: string): boolean {
   return getSavedJobs().some((j) => j.id === id);
-}
-
-export function getRecentSearches(): string[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(RECENT_SEARCHES_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
-export function addRecentSearch(userId: string) {
-  if (!userId.trim()) return;
-  const recent = getRecentSearches().filter((id) => id !== userId);
-  const updated = [userId, ...recent].slice(0, 5);
-  localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
-}
-
-export function clearRecentSearches() {
-  if (typeof window === "undefined") return;
-  localStorage.removeItem(RECENT_SEARCHES_KEY);
 }

@@ -57,10 +57,20 @@ function GuidancePage() {
   const [error, setError] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [streamingId, setStreamingId] = useState<string | null>(null);
+  const streamTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (streamTimer.current) clearInterval(streamTimer.current);
+    };
+  }, []);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, loading]);
+
+  const isStreaming = streamingId !== null;
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -68,7 +78,7 @@ function GuidancePage() {
 
   async function send(text: string) {
     const trimmed = text.trim();
-    if (!trimmed || !userId.trim() || loading) return;
+    if (!trimmed || !userId.trim() || loading || streamTimer.current) return;
 
     setError(null);
     setQuestion("");
@@ -95,19 +105,30 @@ function GuidancePage() {
       if (Array.isArray(data)) data = data[0] ?? {};
       const reply =
         typeof data === "string" ? data : (data.response ?? data.answer ?? data.output ?? "");
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `a-${Date.now()}`,
-          role: "assistant",
-          content: reply || "No response received.",
-        },
-      ]);
+      streamReply(reply || "No response received.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not get a response");
     } finally {
       setLoading(false);
     }
+  }
+
+  function streamReply(full: string) {
+    const id = `a-${Date.now()}`;
+    setMessages((prev) => [...prev, { id, role: "assistant", content: "" }]);
+    setStreamingId(id);
+    let i = 0;
+    if (streamTimer.current) clearInterval(streamTimer.current);
+    streamTimer.current = setInterval(() => {
+      i = Math.min(full.length, i + Math.max(2, Math.round(full.length / 240)));
+      const chunk = full.slice(0, i);
+      setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, content: chunk } : m)));
+      if (i >= full.length) {
+        if (streamTimer.current) clearInterval(streamTimer.current);
+        streamTimer.current = null;
+        setStreamingId(null);
+      }
+    }, 16);
   }
 
   function onSubmit(e: React.FormEvent) {
@@ -169,7 +190,10 @@ function GuidancePage() {
                   <button
                     key={s}
                     type="button"
-                    onClick={() => void send(s)}
+                    onClick={() => {
+                      setQuestion(s);
+                      inputRef.current?.focus();
+                    }}
                     className="rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-secondary/80"
                   >
                     {s}
@@ -196,6 +220,9 @@ function GuidancePage() {
                     </div>
                     <div className="prose prose-sm max-w-none flex-1 text-sm leading-relaxed text-foreground dark:prose-invert prose-headings:text-foreground prose-strong:text-foreground prose-a:text-primary">
                       <ReactMarkdown>{m.content}</ReactMarkdown>
+                      {streamingId === m.id && (
+                        <span className="ml-0.5 inline-block h-4 w-[2px] animate-pulse bg-primary align-middle" />
+                      )}
                     </div>
                   </div>
                 ),
@@ -239,7 +266,7 @@ function GuidancePage() {
             type="submit"
             size="icon"
             className="h-10 w-10 shrink-0 rounded-full"
-            disabled={loading || !question.trim() || !userId.trim()}
+            disabled={loading || isStreaming || !question.trim() || !userId.trim()}
             aria-label="Send message"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
