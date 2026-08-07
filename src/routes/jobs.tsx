@@ -27,7 +27,7 @@ import {
   makeJobId,
 } from "@/lib/jobs-store";
 
-const JOB_MATCH_URL = "https://mahakal-ujjain.app.n8n.cloud/webhook/match-jobs";
+const JOB_MATCH_URL = "https://mahakal-ujjain.app.n8n.cloud/webhook/job-updates";
 
 type SortOption = "relevance" | "company" | "title";
 
