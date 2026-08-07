@@ -218,8 +218,9 @@ function GuidancePage() {
         </div>
 
         <div className="mt-5 space-y-2">
-          <Label>User ID</Label>
+          <Label htmlFor="guidance-user-id">User ID</Label>
           <Input
+            id="guidance-user-id"
             required
             value={userId}
             onChange={(e) => setUserId(e.target.value)}

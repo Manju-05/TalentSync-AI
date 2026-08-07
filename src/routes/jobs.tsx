@@ -160,8 +160,9 @@ function JobsPage() {
           className="mt-8 flex flex-col gap-4 rounded-2xl border border-border/60 bg-card p-6 shadow-sm sm:flex-row sm:items-end"
         >
           <div className="flex-1 space-y-2">
-            <Label>User ID</Label>
+            <Label htmlFor="jobs-user-id">User ID</Label>
             <Input
+              id="jobs-user-id"
               required
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
@@ -180,6 +181,7 @@ function JobsPage() {
 
         {jobs && (
           <div className="mt-8 space-y-4">
+            {jobs.length > 0 && (
             <div className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card p-4 shadow-sm sm:flex-row sm:items-end">
               <div className="flex-1 space-y-2">
                 <Label className="flex items-center gap-1.5">
@@ -230,6 +232,7 @@ function JobsPage() {
                 />
               </div>
             </div>
+            )}
 
             <div className="flex flex-wrap items-center gap-3">
               <p className="text-sm text-muted-foreground">
