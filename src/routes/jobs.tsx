@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import { extractApiError } from "@/lib/api-error";
 import { JobCard } from "@/components/JobCard";
 import { JobSkeletonList } from "@/components/JobSkeleton";
 import { EmptyState } from "@/components/EmptyState";
@@ -83,8 +84,8 @@ function JobsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id: id }),
       });
-      if (!res.ok) throw new Error(`Request failed (${res.status})`);
       const text = await res.text();
+      if (!res.ok) throw new Error(extractApiError(res.status, text));
       const data = text ? JSON.parse(text) : [];
       const list: Job[] = Array.isArray(data) ? data : data.jobs ?? [];
       setJobs(list);

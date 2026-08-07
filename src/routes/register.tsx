@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { extractApiError } from "@/lib/api-error";
 import { Loader2, CheckCircle2, Copy, CopyCheck } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -117,8 +118,8 @@ function RegisterPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(parsed.data),
       });
-      if (!res.ok) throw new Error(`Registration failed (${res.status})`);
       const text = await res.text();
+      if (!res.ok) throw new Error(extractApiError(res.status, text));
       let data: any = {};
       try {
         data = text ? JSON.parse(text) : {};
