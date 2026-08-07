@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { Loader2, Search, X, Clock } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Loader2, Search, X, RefreshCw } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,15 +13,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { JobCard } from "@/components/JobCard";
 import { JobSkeletonList } from "@/components/JobSkeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import {
   type Job,
-  addRecentSearch,
-  getRecentSearches,
-  clearRecentSearches,
   isJobSaved,
   normalizeSkills,
   makeJobId,
@@ -63,38 +61,52 @@ function JobsPage() {
   const [keyword, setKeyword] = useState("");
   const [minSkills, setMinSkills] = useState(0);
   const [sort, setSort] = useState<SortOption>("relevance");
-  const [recent, setRecent] = useState<string[]>([]);
   const [savedVersion, setSavedVersion] = useState(0);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const userIdRef = useRef("");
+  userIdRef.current = userId;
 
-  useEffect(() => {
-    setRecent(getRecentSearches());
-  }, []);
-
-  async function findJobs(e?: React.FormEvent) {
-    e?.preventDefault();
-    if (!userId.trim()) return;
-    setLoading(true);
+  const fetchJobs = useCallback(async (silent = false) => {
+    const id = userIdRef.current.trim();
+    if (!id) return;
+    if (silent) setRefreshing(true);
+    else {
+      setLoading(true);
+      setJobs(null);
+    }
     setError(null);
-    setJobs(null);
     try {
       const res = await fetch(JOB_MATCH_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: userId }),
+        body: JSON.stringify({ user_id: id }),
       });
       if (!res.ok) throw new Error(`Request failed (${res.status})`);
       const text = await res.text();
       const data = text ? JSON.parse(text) : [];
       const list: Job[] = Array.isArray(data) ? data : data.jobs ?? [];
       setJobs(list);
-      addRecentSearch(userId);
-      setRecent(getRecentSearches());
+      setLastUpdated(new Date());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not fetch jobs");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  }, []);
+
+  function findJobs(e?: React.FormEvent) {
+    e?.preventDefault();
+    void fetchJobs(false);
   }
+
+  useEffect(() => {
+    if (!autoRefresh || !jobs || !userId.trim()) return;
+    const timer = setInterval(() => void fetchJobs(true), 60000);
+    return () => clearInterval(timer);
+  }, [autoRefresh, jobs, userId, fetchJobs]);
 
   const filteredJobs = useMemo(() => {
     if (!jobs) return [];
@@ -140,11 +152,6 @@ function JobsPage() {
     return Math.max(1, ...jobs.map((job) => normalizeSkills(job).length));
   }, [jobs]);
 
-  function useRecent(id: string) {
-    setUserId(id);
-    setTimeout(() => findJobs(), 0);
-  }
-
   return (
     <Layout>
       <div className="mx-auto max-w-3xl">
@@ -171,35 +178,6 @@ function JobsPage() {
             Find Matching Jobs
           </Button>
         </form>
-
-        {recent.length > 0 && (
-          <div className="mt-4">
-            <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="h-4 w-4" />
-              Recent searches
-              <button
-                onClick={() => {
-                  clearRecentSearches();
-                  setRecent([]);
-                }}
-                className="ml-auto text-xs underline-offset-2 hover:underline"
-              >
-                Clear
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {recent.map((id) => (
-                <button
-                  key={id}
-                  onClick={() => useRecent(id)}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-secondary/80"
-                >
-                  {id}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
 
         {error && <ErrorState message={error} onRetry={() => findJobs()} />}
 
@@ -258,9 +236,33 @@ function JobsPage() {
               </div>
             </div>
 
-            <p className="text-sm text-muted-foreground">
-              Showing {filteredJobs.length} of {jobs.length} match{jobs.length === 1 ? "" : "es"}
-            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="text-sm text-muted-foreground">
+                Showing {filteredJobs.length} of {jobs.length} match{jobs.length === 1 ? "" : "es"}
+              </p>
+              {lastUpdated && (
+                <span className="text-xs text-muted-foreground">
+                  Updated {lastUpdated.toLocaleTimeString()}
+                </span>
+              )}
+              <div className="ml-auto flex items-center gap-3">
+                <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+                  <Switch checked={autoRefresh} onCheckedChange={setAutoRefresh} />
+                  Auto-refresh
+                </label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="rounded-full"
+                  disabled={refreshing || loading}
+                  onClick={() => void fetchJobs(true)}
+                >
+                  <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
+                  Refresh
+                </Button>
+              </div>
+            </div>
 
             {filteredJobs.length === 0 ? (
               <EmptyState
