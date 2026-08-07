@@ -83,6 +83,7 @@ function RegisterPage() {
         localStorage.setItem("user_id", id);
         setUserId(id);
       }
+      setForm(emptyForm);
       toast.success("Registration successful!", {
         action: id
           ? {
