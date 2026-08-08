@@ -219,25 +219,16 @@ function RegisterPage() {
           </Button>
         </form>
 
-        {userId && (
+        {successEmail && (
           <div className="mt-6 flex items-start gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-6 shadow-sm">
-            <CheckCircle2 className="mt-0.5 h-5 w-5 text-primary" />
+            <Mail className="mt-0.5 h-5 w-5 text-primary" />
             <div className="flex-1">
               <p className="font-semibold text-foreground">Registration successful</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Your User ID: <span className="font-mono text-primary">{userId}</span> — saved for
-                job matching and career guidance.
+                We&apos;ve saved your profile. You&apos;ll receive updates at{" "}
+                <span className="font-medium text-primary">{successEmail}</span>.
               </p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-full"
-              onClick={() => copyUserId(userId)}
-            >
-              {copied ? <CopyCheck className="mr-1.5 h-4 w-4" /> : <Copy className="mr-1.5 h-4 w-4" />}
-              {copied ? "Copied" : "Copy"}
-            </Button>
           </div>
         )}
       </div>
