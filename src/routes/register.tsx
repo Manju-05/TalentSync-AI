@@ -1,10 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { extractApiError } from "@/lib/api-error";
-import { Loader2, Mail } from "lucide-react";
+import { Loader2, LogIn } from "lucide-react";
 import { Layout } from "@/components/Layout";
+import { TagInput } from "@/components/TagInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,29 +15,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-
-
-const REGISTER_URL = "https://mahakal-ujjain.app.n8n.cloud/webhook/register";
+import { api } from "@/lib/api";
+import { getUserId, setUserId } from "@/lib/user";
 
 export const Route = createFileRoute("/register")({
   head: () => ({
     meta: [
-      { title: "Register Your Profile — AI Job Portal" },
+      { title: "Create your SkillMatch profile" },
       {
         name: "description",
-        content: "Create your AI Job Portal profile with your skills, roles and experience level.",
+        content:
+          "Register with your skills, preferred roles and experience level to get AI-ranked job matches on SkillMatch.",
       },
-      { property: "og:title", content: "Register Your Profile — AI Job Portal" },
+      { property: "og:title", content: "Create your SkillMatch profile" },
       {
         property: "og:description",
-        content: "Create your AI Job Portal profile in under a minute.",
+        content: "Register in under a minute and get AI-ranked job matches.",
       },
-      { property: "og:url", content: "/register" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Register Your Profile — AI Job Portal" },
-      { name: "twitter:description", content: "Create your AI Job Portal profile in under a minute." },
+      { name: "twitter:title", content: "Create your SkillMatch profile" },
+      { name: "twitter:description", content: "Register and get AI-ranked job matches." },
     ],
     links: [{ rel: "canonical", href: "/register" }],
   }),
@@ -47,48 +45,34 @@ export const Route = createFileRoute("/register")({
 const emptyForm = {
   full_name: "",
   email: "",
-  skills: "",
   preferred_roles: "",
   experience_level: "",
   location: "",
 };
 
-const registerSchema = z.object({
-  full_name: z
-    .string()
-    .trim()
-    .min(2, "Please enter your full name")
-    .max(100, "Name must be under 100 characters")
-    .regex(/^[a-zA-Z\s.'-]+$/, "Name can only contain letters, spaces and . ' -"),
+const schema = z.object({
+  full_name: z.string().trim().max(100, "Name must be under 100 characters"),
   email: z.string().trim().email("Enter a valid email address").max(255, "Email is too long"),
-  skills: z
-    .string()
-    .trim()
-    .min(2, "Add at least one skill")
-    .max(300, "Keep skills under 300 characters"),
-  preferred_roles: z
-    .string()
-    .trim()
-    .min(2, "Add at least one preferred role")
-    .max(200, "Keep roles under 200 characters"),
-  experience_level: z.enum(["Fresher", "Junior", "Mid", "Senior"], {
-    message: "Select your experience level",
-  }),
-  location: z
-    .string()
-    .trim()
-    .min(2, "Enter your location")
-    .max(120, "Location must be under 120 characters"),
+  skills: z.string().trim().min(2, "Add at least one skill").max(300, "Keep skills under 300 chars"),
+  preferred_roles: z.string().trim().max(200, "Keep roles under 200 characters"),
+  experience_level: z.string().trim(),
+  location: z.string().trim().max(120, "Location must be under 120 characters"),
 });
 
-type FieldErrors = Partial<Record<keyof typeof emptyForm, string>>;
+type FieldErrors = Partial<Record<string, string>>;
 
 function RegisterPage() {
+  const navigate = useNavigate();
   const [form, setForm] = useState(emptyForm);
+  const [skills, setSkills] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [successEmail, setSuccessEmail] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [existingId, setExistingId] = useState("");
+  const [showExisting, setShowExisting] = useState(false);
+
+  useEffect(() => {
+    if (getUserId()) void navigate({ to: "/" });
+  }, [navigate]);
 
   const update = (key: keyof typeof emptyForm, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -97,14 +81,12 @@ function RegisterPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
-    setSuccessEmail(null);
-
-    const parsed = registerSchema.safeParse(form);
+    const payload = { ...form, skills: skills.join(", ") };
+    const parsed = schema.safeParse(payload);
     if (!parsed.success) {
       const errs: FieldErrors = {};
       for (const issue of parsed.error.issues) {
-        const key = issue.path[0] as keyof typeof emptyForm;
+        const key = String(issue.path[0]);
         if (key && !errs[key]) errs[key] = issue.message;
       }
       setFieldErrors(errs);
@@ -112,35 +94,40 @@ function RegisterPage() {
       return;
     }
     setFieldErrors({});
-
     setLoading(true);
     try {
-      const res = await fetch(REGISTER_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(parsed.data),
-      });
-      const text = await res.text();
-      if (!res.ok) throw new Error(extractApiError(res.status, text));
+      const data = await api.register(parsed.data);
+      if (!data.user_id) throw new Error("Registration succeeded but no user ID was returned");
+      setUserId(data.user_id);
       setForm(emptyForm);
-      setSuccessEmail(parsed.data.email);
-      toast.success("Registration successful! Check your email for updates.");
+      setSkills([]);
+      toast.success(data.message ?? "Registration successful");
+      void navigate({ to: "/" });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Something went wrong";
-      setError(msg);
-      toast.error(msg);
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
   }
 
+  function signInWithId(e: React.FormEvent) {
+    e.preventDefault();
+    const id = existingId.trim();
+    if (!id) {
+      toast.error("Enter your User ID");
+      return;
+    }
+    setUserId(id);
+    toast.success("Welcome back");
+    void navigate({ to: "/" });
+  }
 
   return (
     <Layout>
       <div className="mx-auto max-w-2xl">
-        <h1 className="text-3xl font-bold text-foreground">Register</h1>
+        <h1 className="text-3xl font-bold text-foreground">Create your profile</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Tell us about yourself so we can match you with the right roles.
+          Tell us about yourself so SkillMatch can rank roles that actually fit you.
         </p>
 
         <form
@@ -148,15 +135,17 @@ function RegisterPage() {
           className="mt-8 space-y-5 rounded-2xl border border-border/60 bg-card p-6 shadow-sm sm:p-8"
         >
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Full Name" error={fieldErrors.full_name}>
+            <Field label="Full Name" htmlFor="full_name" error={fieldErrors.full_name}>
               <Input
+                id="full_name"
                 value={form.full_name}
                 onChange={(e) => update("full_name", e.target.value)}
                 placeholder="Jane Doe"
               />
             </Field>
-            <Field label="Email" error={fieldErrors.email}>
+            <Field label="Email *" htmlFor="email" error={fieldErrors.email}>
               <Input
+                id="email"
                 type="email"
                 value={form.email}
                 onChange={(e) => update("email", e.target.value)}
@@ -165,16 +154,21 @@ function RegisterPage() {
             </Field>
           </div>
 
-          <Field label="Skills (comma separated)" error={fieldErrors.skills}>
-            <Input
-              value={form.skills}
-              onChange={(e) => update("skills", e.target.value)}
-              placeholder="React, Node.js, SQL"
+          <Field label="Skills *" htmlFor="skills" error={fieldErrors.skills}>
+            <TagInput
+              id="skills"
+              value={skills}
+              onChange={(t) => {
+                setSkills(t);
+                setFieldErrors((p) => ({ ...p, skills: undefined }));
+              }}
+              placeholder="Type a skill and press Enter"
             />
           </Field>
 
-          <Field label="Preferred Roles" error={fieldErrors.preferred_roles}>
+          <Field label="Preferred Roles" htmlFor="preferred_roles" error={fieldErrors.preferred_roles}>
             <Input
+              id="preferred_roles"
               value={form.preferred_roles}
               onChange={(e) => update("preferred_roles", e.target.value)}
               placeholder="Frontend Developer, Full Stack Engineer"
@@ -191,7 +185,7 @@ function RegisterPage() {
                   <SelectValue placeholder="Select level" />
                 </SelectTrigger>
                 <SelectContent>
-                  {["Fresher", "Junior", "Mid", "Senior"].map((l) => (
+                  {["junior", "mid", "senior"].map((l) => (
                     <SelectItem key={l} value={l}>
                       {l}
                     </SelectItem>
@@ -199,20 +193,15 @@ function RegisterPage() {
                 </SelectContent>
               </Select>
             </Field>
-            <Field label="Location" error={fieldErrors.location}>
+            <Field label="Location" htmlFor="location" error={fieldErrors.location}>
               <Input
+                id="location"
                 value={form.location}
                 onChange={(e) => update("location", e.target.value)}
-                placeholder="Bengaluru, India"
+                placeholder="Remote"
               />
             </Field>
           </div>
-
-          {error && (
-            <p className="rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
-              {error}
-            </p>
-          )}
 
           <Button type="submit" disabled={loading} className="w-full rounded-full" size="lg">
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -220,18 +209,40 @@ function RegisterPage() {
           </Button>
         </form>
 
-        {successEmail && (
-          <div className="mt-6 flex items-start gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-6 shadow-sm">
-            <Mail className="mt-0.5 h-5 w-5 text-primary" />
-            <div className="flex-1">
-              <p className="font-semibold text-foreground">Registration successful</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                We&apos;ve saved your profile. You&apos;ll receive updates at{" "}
-                <span className="font-medium text-primary">{successEmail}</span>.
-              </p>
-            </div>
-          </div>
-        )}
+        <div className="mt-6 rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
+          {showExisting ? (
+            <form onSubmit={signInWithId} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div className="flex-1 space-y-2">
+                <Label htmlFor="existing-id">Your User ID</Label>
+                <Input
+                  id="existing-id"
+                  value={existingId}
+                  onChange={(e) => setExistingId(e.target.value)}
+                  placeholder="usr_xxx"
+                />
+              </div>
+              <Button type="submit" variant="outline" className="rounded-full">
+                <LogIn className="mr-1.5 h-4 w-4" />
+                Continue
+              </Button>
+            </form>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowExisting(true)}
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              Already registered? Enter your User ID
+            </button>
+          )}
+        </div>
+
+        <p className="mt-4 text-center text-xs text-muted-foreground">
+          Prefer to browse first?{" "}
+          <Link to="/guidance" className="text-primary hover:underline">
+            Ask the Career Coach
+          </Link>
+        </p>
       </div>
     </Layout>
   );
@@ -239,16 +250,18 @@ function RegisterPage() {
 
 function Field({
   label,
+  htmlFor,
   error,
   children,
 }: {
   label: string;
+  htmlFor?: string;
   error?: string | undefined;
   children: React.ReactNode;
 }) {
   return (
     <div className="space-y-2">
-      <Label>{label}</Label>
+      <Label htmlFor={htmlFor}>{label}</Label>
       {children}
       {error && <p className="text-xs font-medium text-destructive">{error}</p>}
     </div>
