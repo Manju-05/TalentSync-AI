@@ -59,7 +59,7 @@ const schema = z.object({
   location: z.string().trim().max(120, "Location must be under 120 characters"),
 });
 
-type FieldErrors = Partial<Record<keyof typeof emptyForm | "skills", string>>;
+type FieldErrors = Partial<Record<keyof typeof emptyForm | "skills", string | undefined>>;
 
 function RegisterPage() {
   const navigate = useNavigate();
