@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApplicationsRouteImport } from './routes/applications'
 import { Route as GuidanceRouteImport } from './routes/guidance'
 import { Route as JobsRouteImport } from './routes/jobs'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 
@@ -36,6 +37,11 @@ const JobsRoute = JobsRouteImport.update({
   path: '/jobs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/applications': typeof ApplicationsRoute
   '/guidance': typeof GuidanceRoute
   '/jobs': typeof JobsRoute
+  '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
 }
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/applications': typeof ApplicationsRoute
   '/guidance': typeof GuidanceRoute
   '/jobs': typeof JobsRoute
+  '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
 }
@@ -69,22 +77,36 @@ export interface FileRoutesById {
   '/applications': typeof ApplicationsRoute
   '/guidance': typeof GuidanceRoute
   '/jobs': typeof JobsRoute
+  '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/applications' | '/guidance' | '/jobs' | '/register' | '/sitemap.xml'
+    | '/'
+    | '/applications'
+    | '/guidance'
+    | '/jobs'
+    | '/profile'
+    | '/register'
+    | '/sitemap.xml'
   fileRoutesByTo: FileRoutesByTo
   to:
-    '/' | '/applications' | '/guidance' | '/jobs' | '/register' | '/sitemap.xml'
+    | '/'
+    | '/applications'
+    | '/guidance'
+    | '/jobs'
+    | '/profile'
+    | '/register'
+    | '/sitemap.xml'
   id:
     | '__root__'
     | '/'
     | '/applications'
     | '/guidance'
     | '/jobs'
+    | '/profile'
     | '/register'
     | '/sitemap.xml'
   fileRoutesById: FileRoutesById
@@ -94,6 +116,7 @@ export interface RootRouteChildren {
   ApplicationsRoute: typeof ApplicationsRoute
   GuidanceRoute: typeof GuidanceRoute
   JobsRoute: typeof JobsRoute
+  ProfileRoute: typeof ProfileRoute
   RegisterRoute: typeof RegisterRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
 }
@@ -128,6 +151,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JobsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/register': {
       id: '/register'
       path: '/register'
@@ -150,6 +180,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApplicationsRoute: ApplicationsRoute,
   GuidanceRoute: GuidanceRoute,
   JobsRoute: JobsRoute,
+  ProfileRoute: ProfileRoute,
   RegisterRoute: RegisterRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
 }
