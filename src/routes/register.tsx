@@ -86,8 +86,7 @@ function RegisterPage() {
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [successEmail, setSuccessEmail] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   const update = (key: keyof typeof emptyForm, value: string) => {
@@ -98,6 +97,7 @@ function RegisterPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setSuccessEmail(null);
 
     const parsed = registerSchema.safeParse(form);
     if (!parsed.success) {
@@ -121,28 +121,9 @@ function RegisterPage() {
       });
       const text = await res.text();
       if (!res.ok) throw new Error(extractApiError(res.status, text));
-      let data: any = {};
-      try {
-        data = text ? JSON.parse(text) : {};
-      } catch {
-        data = {};
-      }
-      if (Array.isArray(data)) data = data[0] ?? {};
-      const id = String(data.user_id ?? data.userId ?? data.id ?? "");
-      if (id) {
-        localStorage.setItem("user_id", id);
-        setUserId(id);
-      }
       setForm(emptyForm);
-      setFieldErrors({});
-      toast.success("Registration successful!", {
-        action: id
-          ? {
-              label: "Copy User ID",
-              onClick: () => copyUserId(id),
-            }
-          : undefined,
-      });
+      setSuccessEmail(parsed.data.email);
+      toast.success("Registration successful! Check your email for updates.");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
       setError(msg);
@@ -152,16 +133,6 @@ function RegisterPage() {
     }
   }
 
-  async function copyUserId(id: string) {
-    try {
-      await navigator.clipboard.writeText(id);
-      setCopied(true);
-      toast.success("User ID copied to clipboard");
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      toast.error("Could not copy automatically");
-    }
-  }
 
   return (
     <Layout>
