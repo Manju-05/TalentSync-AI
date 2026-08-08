@@ -1,74 +1,166 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { Briefcase, ClipboardList, MessageSquare, User, ArrowRight } from "lucide-react";
 import { Layout } from "@/components/Layout";
-import { Button } from "@/components/ui/button";
-import { Sparkles, Search, UserPlus } from "lucide-react";
+import { RequireUser } from "@/components/RequireUser";
+import { Skeleton } from "@/components/ui/skeleton";
+import { api, type Application } from "@/lib/api";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "AI Job Portal — Get Matched With Jobs" },
+      { title: "SkillMatch — AI job matching dashboard" },
       {
         name: "description",
         content:
-          "Register your profile, get matched with jobs, and receive AI career guidance on AI Job Portal.",
+          "SkillMatch ranks jobs against your skills, tracks your applications and coaches your career with AI.",
       },
-      { property: "og:title", content: "AI Job Portal — Get Matched With Jobs" },
+      { property: "og:title", content: "SkillMatch — AI job matching dashboard" },
       {
         property: "og:description",
-        content: "Register your profile, get matched with jobs, and receive AI career guidance.",
+        content: "AI-ranked job matches, application tracking and career coaching in one place.",
       },
-      { property: "og:url", content: "/" },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "AI Job Portal — Get Matched With Jobs" },
-      { name: "twitter:description", content: "Register your profile, get matched with jobs, and receive AI career guidance." },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "SkillMatch — AI job matching dashboard" },
+      { name: "twitter:description", content: "AI-ranked matches, tracking and career coaching." },
     ],
     links: [{ rel: "canonical", href: "/" }],
   }),
-  component: Index,
+  component: DashboardPage,
 });
 
-const features = [
-  { icon: UserPlus, title: "Register", text: "Share your skills, roles and experience once." },
-  { icon: Search, title: "Find Jobs", text: "Get roles matched to your profile instantly." },
-  { icon: Sparkles, title: "Career Guidance", text: "Ask AI anything about your next step." },
-];
-
-function Index() {
+function DashboardPage() {
   return (
     <Layout>
-      <section className="rounded-3xl bg-gradient-to-b from-primary/10 to-transparent px-6 py-16 text-center sm:py-24">
-        <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-6xl">
-          AI Job Portal
-        </h1>
-        <p className="mx-auto mt-5 max-w-2xl text-base text-muted-foreground sm:text-lg">
-          Register your profile, get matched with jobs, and receive AI career guidance.
-        </p>
-        <div className="mt-9 flex flex-wrap justify-center gap-3">
-          <Button asChild size="lg" className="rounded-full">
-            <Link to="/register">Register</Link>
-          </Button>
-          <Button asChild size="lg" variant="secondary" className="rounded-full">
-            <Link to="/jobs">Find Jobs</Link>
-          </Button>
-          <Button asChild size="lg" variant="outline" className="rounded-full">
-            <Link to="/guidance">Career Guidance</Link>
-          </Button>
-        </div>
-      </section>
-
-      <section className="mt-12 grid gap-5 sm:grid-cols-3">
-        {features.map((f) => (
-          <div
-            key={f.title}
-            className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
-          >
-            <f.icon className="h-6 w-6 text-primary" />
-            <h2 className="mt-4 text-lg font-semibold text-foreground">{f.title}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">{f.text}</p>
-          </div>
-        ))}
-      </section>
+      <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Your matches, applications and next steps at a glance.
+      </p>
+      <RequireUser>{(userId) => <Summary userId={userId} />}</RequireUser>
     </Layout>
+  );
+}
+
+function Summary({ userId }: { userId: string }) {
+  const [matches, setMatches] = useState<number | null>(null);
+  const [apps, setApps] = useState<Application[] | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      const [m, a] = await Promise.allSettled([
+        api.jobMatches(userId),
+        api.listApplications(userId),
+      ]);
+      if (cancelled) return;
+      if (m.status === "fulfilled") setMatches(m.value.jobs?.length ?? m.value.count ?? 0);
+      if (a.status === "fulfilled") setApps(a.value.applications ?? []);
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  const byStatus = (apps ?? []).reduce<Record<string, number>>((acc, a) => {
+    const s = a.status ?? "saved";
+    acc[s] = (acc[s] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  return (
+    <div className="mt-8 space-y-8">
+      <div className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
+        <p className="text-sm text-muted-foreground">Welcome back</p>
+        <p className="mt-1 text-lg font-semibold text-foreground">
+          Let&apos;s find your next role.
+        </p>
+      </div>
+
+      {loading ? (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Skeleton className="h-28 rounded-2xl" />
+          <Skeleton className="h-28 rounded-2xl" />
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <StatCard label="Job matches" value={matches ?? 0} to="/jobs" icon={Briefcase} />
+          <StatCard
+            label="Applications tracked"
+            value={apps?.length ?? 0}
+            to="/applications"
+            icon={ClipboardList}
+          />
+        </div>
+      )}
+
+      {Object.keys(byStatus).length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {Object.entries(byStatus).map(([status, count]) => (
+            <span
+              key={status}
+              className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+            >
+              {status}: {count}
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <QuickLink to="/jobs" label="Browse matches" icon={Briefcase} />
+        <QuickLink to="/guidance" label="Ask the coach" icon={MessageSquare} />
+        <QuickLink to="/profile" label="Profile & resume" icon={User} />
+      </div>
+    </div>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  to,
+  icon: Icon,
+}: {
+  label: string;
+  value: number;
+  to: string;
+  icon: React.ComponentType<{ className?: string }>;
+}) {
+  return (
+    <Link
+      to={to}
+      className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg"
+    >
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Icon className="h-4 w-4" />
+        {label}
+      </div>
+      <p className="mt-2 text-3xl font-bold text-foreground">{value}</p>
+    </Link>
+  );
+}
+
+function QuickLink({
+  to,
+  label,
+  icon: Icon,
+}: {
+  to: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}) {
+  return (
+    <Link
+      to={to}
+      className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card p-4 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent"
+    >
+      <Icon className="h-4 w-4 text-primary" />
+      {label}
+      <ArrowRight className="ml-auto h-4 w-4 text-muted-foreground" />
+    </Link>
   );
 }
