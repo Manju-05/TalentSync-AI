@@ -3,7 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { extractApiError } from "@/lib/api-error";
-import { Loader2, CheckCircle2, Copy, CopyCheck } from "lucide-react";
+import { Loader2, Mail } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+
 
 const REGISTER_URL = "https://mahakal-ujjain.app.n8n.cloud/webhook/register";
 
@@ -85,8 +87,7 @@ function RegisterPage() {
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [successEmail, setSuccessEmail] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   const update = (key: keyof typeof emptyForm, value: string) => {
@@ -97,6 +98,7 @@ function RegisterPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setSuccessEmail(null);
 
     const parsed = registerSchema.safeParse(form);
     if (!parsed.success) {
@@ -120,28 +122,9 @@ function RegisterPage() {
       });
       const text = await res.text();
       if (!res.ok) throw new Error(extractApiError(res.status, text));
-      let data: any = {};
-      try {
-        data = text ? JSON.parse(text) : {};
-      } catch {
-        data = {};
-      }
-      if (Array.isArray(data)) data = data[0] ?? {};
-      const id = String(data.user_id ?? data.userId ?? data.id ?? "");
-      if (id) {
-        localStorage.setItem("user_id", id);
-        setUserId(id);
-      }
       setForm(emptyForm);
-      setFieldErrors({});
-      toast.success("Registration successful!", {
-        action: id
-          ? {
-              label: "Copy User ID",
-              onClick: () => copyUserId(id),
-            }
-          : undefined,
-      });
+      setSuccessEmail(parsed.data.email);
+      toast.success("Registration successful! Check your email for updates.");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
       setError(msg);
@@ -151,16 +134,6 @@ function RegisterPage() {
     }
   }
 
-  async function copyUserId(id: string) {
-    try {
-      await navigator.clipboard.writeText(id);
-      setCopied(true);
-      toast.success("User ID copied to clipboard");
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      toast.error("Could not copy automatically");
-    }
-  }
 
   return (
     <Layout>
@@ -247,25 +220,16 @@ function RegisterPage() {
           </Button>
         </form>
 
-        {userId && (
+        {successEmail && (
           <div className="mt-6 flex items-start gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-6 shadow-sm">
-            <CheckCircle2 className="mt-0.5 h-5 w-5 text-primary" />
+            <Mail className="mt-0.5 h-5 w-5 text-primary" />
             <div className="flex-1">
               <p className="font-semibold text-foreground">Registration successful</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Your User ID: <span className="font-mono text-primary">{userId}</span> — saved for
-                job matching and career guidance.
+                We&apos;ve saved your profile. You&apos;ll receive updates at{" "}
+                <span className="font-medium text-primary">{successEmail}</span>.
               </p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-full"
-              onClick={() => copyUserId(userId)}
-            >
-              {copied ? <CopyCheck className="mr-1.5 h-4 w-4" /> : <Copy className="mr-1.5 h-4 w-4" />}
-              {copied ? "Copied" : "Copy"}
-            </Button>
           </div>
         )}
       </div>
