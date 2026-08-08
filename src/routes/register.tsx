@@ -3,7 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { extractApiError } from "@/lib/api-error";
-import { Loader2, CheckCircle2, Copy, CopyCheck } from "lucide-react";
+import { Loader2, CheckCircle2, Mail } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 
 const REGISTER_URL = "https://mahakal-ujjain.app.n8n.cloud/webhook/register";
 
