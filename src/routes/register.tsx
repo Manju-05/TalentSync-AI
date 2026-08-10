@@ -125,7 +125,7 @@ function RegisterPage() {
   return (
     <Layout>
       <div className="mx-auto max-w-2xl">
-        <h1 className="text-3xl font-bold text-foreground">Create your profile</h1>
+        <h1 className="animate-fade-up text-3xl font-bold tracking-tight text-foreground md:text-4xl">Create your profile</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Tell us about yourself so TalentSync can rank roles that actually fit you.
         </p>

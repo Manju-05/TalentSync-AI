@@ -48,7 +48,7 @@ function ApplicationsPage() {
   return (
     <Layout>
       <div className="mx-auto max-w-4xl">
-        <h1 className="text-3xl font-bold text-foreground">My Applications</h1>
+        <h1 className="animate-fade-up text-3xl font-bold tracking-tight text-foreground md:text-4xl">My Applications</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Everything you&apos;ve saved or applied to, grouped by stage.
         </p>

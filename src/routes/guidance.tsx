@@ -45,7 +45,7 @@ function GuidancePage() {
   return (
     <Layout>
       <div className="mx-auto flex max-w-3xl flex-col">
-        <h1 className="text-3xl font-bold text-foreground">Career Coach</h1>
+        <h1 className="animate-fade-up text-3xl font-bold tracking-tight text-foreground md:text-4xl">Career Coach</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Ask anything about your career — advice is personalised from your profile.
         </p>

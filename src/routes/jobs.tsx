@@ -36,7 +36,7 @@ function JobsPage() {
   return (
     <Layout>
       <div className="mx-auto max-w-3xl">
-        <h1 className="text-3xl font-bold text-foreground">Job Matches</h1>
+        <h1 className="animate-fade-up text-3xl font-bold tracking-tight text-foreground md:text-4xl">Job Matches</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Roles ranked by how well they fit your profile.
         </p>

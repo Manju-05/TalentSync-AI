@@ -33,7 +33,7 @@ export const Route = createFileRoute("/")({
 function DashboardPage() {
   return (
     <Layout>
-      <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+      <h1 className="animate-fade-up text-3xl font-bold tracking-tight text-foreground md:text-4xl">Dashboard</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         Your matches, applications and next steps at a glance.
       </p>
