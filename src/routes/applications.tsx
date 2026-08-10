@@ -24,19 +24,19 @@ const STATUSES = ["saved", "applied", "interviewing", "offer", "rejected"];
 export const Route = createFileRoute("/applications")({
   head: () => ({
     meta: [
-      { title: "My Applications — SkillMatch" },
+      { title: "My Applications — TalentSync" },
       {
         name: "description",
         content: "Track saved and applied jobs, update their status and set follow-up reminders.",
       },
-      { property: "og:title", content: "My Applications — SkillMatch" },
+      { property: "og:title", content: "My Applications — TalentSync" },
       {
         property: "og:description",
         content: "Track saved and applied jobs and set follow-up reminders.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "My Applications — SkillMatch" },
+      { name: "twitter:title", content: "My Applications — TalentSync" },
       { name: "twitter:description", content: "Track your job applications in one place." },
     ],
     links: [{ rel: "canonical", href: "/applications" }],

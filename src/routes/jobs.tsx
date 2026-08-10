@@ -15,16 +15,16 @@ import { api, jobHash, type Job } from "@/lib/api";
 export const Route = createFileRoute("/jobs")({
   head: () => ({
     meta: [
-      { title: "Job Matches — SkillMatch" },
+      { title: "Job Matches — TalentSync" },
       {
         name: "description",
         content: "AI-ranked job matches scored against your skills, roles and location.",
       },
-      { property: "og:title", content: "Job Matches — SkillMatch" },
+      { property: "og:title", content: "Job Matches — TalentSync" },
       { property: "og:description", content: "AI-ranked job matches scored against your profile." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Job Matches — SkillMatch" },
+      { name: "twitter:title", content: "Job Matches — TalentSync" },
       { name: "twitter:description", content: "AI-ranked job matches scored against your profile." },
     ],
     links: [{ rel: "canonical", href: "/jobs" }],

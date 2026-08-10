@@ -21,20 +21,20 @@ import { getUserId, setUserId } from "@/lib/user";
 export const Route = createFileRoute("/register")({
   head: () => ({
     meta: [
-      { title: "Create your SkillMatch profile" },
+      { title: "Create your TalentSync profile" },
       {
         name: "description",
         content:
-          "Register with your skills, preferred roles and experience level to get AI-ranked job matches on SkillMatch.",
+          "Register with your skills, preferred roles and experience level to get AI-ranked job matches on TalentSync.",
       },
-      { property: "og:title", content: "Create your SkillMatch profile" },
+      { property: "og:title", content: "Create your TalentSync profile" },
       {
         property: "og:description",
         content: "Register in under a minute and get AI-ranked job matches.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Create your SkillMatch profile" },
+      { name: "twitter:title", content: "Create your TalentSync profile" },
       { name: "twitter:description", content: "Register and get AI-ranked job matches." },
     ],
     links: [{ rel: "canonical", href: "/register" }],
@@ -127,7 +127,7 @@ function RegisterPage() {
       <div className="mx-auto max-w-2xl">
         <h1 className="text-3xl font-bold text-foreground">Create your profile</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Tell us about yourself so SkillMatch can rank roles that actually fit you.
+          Tell us about yourself so TalentSync can rank roles that actually fit you.
         </p>
 
         <form

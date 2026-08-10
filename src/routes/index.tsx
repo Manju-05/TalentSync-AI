@@ -9,20 +9,20 @@ import { api, type Application } from "@/lib/api";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "SkillMatch — AI job matching dashboard" },
+      { title: "TalentSync — AI job matching dashboard" },
       {
         name: "description",
         content:
-          "SkillMatch ranks jobs against your skills, tracks your applications and coaches your career with AI.",
+          "TalentSync ranks jobs against your skills, tracks your applications and coaches your career with AI.",
       },
-      { property: "og:title", content: "SkillMatch — AI job matching dashboard" },
+      { property: "og:title", content: "TalentSync — AI job matching dashboard" },
       {
         property: "og:description",
         content: "AI-ranked job matches, application tracking and career coaching in one place.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "SkillMatch — AI job matching dashboard" },
+      { name: "twitter:title", content: "TalentSync — AI job matching dashboard" },
       { name: "twitter:description", content: "AI-ranked matches, tracking and career coaching." },
     ],
     links: [{ rel: "canonical", href: "/" }],
