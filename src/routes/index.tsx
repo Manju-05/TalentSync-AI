@@ -33,8 +33,8 @@ export const Route = createFileRoute("/")({
 function DashboardPage() {
   return (
     <Layout>
-      <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
+      <h1 className="animate-fade-up text-3xl font-bold tracking-tight text-foreground md:text-4xl">Dashboard</h1>
+      <p className="mt-2 animate-fade-up text-sm text-muted-foreground">
         Your matches, applications and next steps at a glance.
       </p>
       <RequireUser>{(userId) => <Summary userId={userId} />}</RequireUser>
@@ -73,10 +73,11 @@ function Summary({ userId }: { userId: string }) {
 
   return (
     <div className="mt-8 space-y-8">
-      <div className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
-        <p className="text-sm text-muted-foreground">Welcome back</p>
-        <p className="mt-1 text-lg font-semibold text-foreground">
-          Let&apos;s find your next role.
+      <div className="surface-card animate-fade-up relative overflow-hidden rounded-2xl border border-border/60 p-6">
+        <div className="pointer-events-none absolute -right-10 -top-16 h-40 w-40 animate-float-soft rounded-full bg-primary/15 blur-3xl" />
+        <p className="text-sm uppercase tracking-[0.18em] text-muted-foreground">Welcome back</p>
+        <p className="mt-2 font-display text-2xl font-bold tracking-tight">
+          Let&apos;s find your <span className="gradient-text">next role.</span>
         </p>
       </div>
 
@@ -86,7 +87,7 @@ function Summary({ userId }: { userId: string }) {
           <Skeleton className="h-28 rounded-2xl" />
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="stagger-children grid gap-4 sm:grid-cols-2">
           <StatCard label="Job matches" value={matches ?? 0} to="/jobs" icon={Briefcase} />
           <StatCard
             label="Applications tracked"
@@ -98,11 +99,11 @@ function Summary({ userId }: { userId: string }) {
       )}
 
       {Object.keys(byStatus).length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="stagger-children flex flex-wrap gap-2">
           {Object.entries(byStatus).map(([status, count]) => (
             <span
               key={status}
-              className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+              className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium capitalize text-primary transition-colors hover:bg-primary/20"
             >
               {status}: {count}
             </span>
@@ -110,7 +111,7 @@ function Summary({ userId }: { userId: string }) {
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="stagger-children grid gap-4 sm:grid-cols-3">
         <QuickLink to="/jobs" label="Browse matches" icon={Briefcase} />
         <QuickLink to="/guidance" label="Ask the coach" icon={MessageSquare} />
         <QuickLink to="/profile" label="Profile & resume" icon={User} />
@@ -133,13 +134,13 @@ function StatCard({
   return (
     <Link
       to={to}
-      className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg"
+      className="surface-card hover-lift group rounded-2xl border border-border/60 p-6"
     >
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Icon className="h-4 w-4" />
+        <Icon className="h-4 w-4 text-primary transition-transform duration-300 group-hover:scale-110" />
         {label}
       </div>
-      <p className="mt-2 text-3xl font-bold text-foreground">{value}</p>
+      <p className="mt-2 font-display text-4xl font-bold tracking-tight text-foreground">{value}</p>
     </Link>
   );
 }
@@ -156,11 +157,11 @@ function QuickLink({
   return (
     <Link
       to={to}
-      className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card p-4 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent"
+      className="surface-card group flex items-center gap-3 rounded-2xl border border-border/60 p-4 text-sm font-medium text-foreground transition-all duration-200 hover:border-primary/40 hover:bg-accent"
     >
       <Icon className="h-4 w-4 text-primary" />
       {label}
-      <ArrowRight className="ml-auto h-4 w-4 text-muted-foreground" />
+      <ArrowRight className="ml-auto h-4 w-4 text-muted-foreground transition-transform duration-200 group-hover:translate-x-1 group-hover:text-primary" />
     </Link>
   );
 }
