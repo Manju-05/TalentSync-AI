@@ -10,19 +10,19 @@ import { clearUserId } from "@/lib/user";
 export const Route = createFileRoute("/profile")({
   head: () => ({
     meta: [
-      { title: "Profile — SkillMatch" },
+      { title: "Profile — TalentSync" },
       {
         name: "description",
-        content: "Manage your SkillMatch session and upload a resume to sharpen your job matches.",
+        content: "Manage your TalentSync session and upload a resume to sharpen your job matches.",
       },
-      { property: "og:title", content: "Profile — SkillMatch" },
+      { property: "og:title", content: "Profile — TalentSync" },
       {
         property: "og:description",
         content: "Manage your session and upload a resume to improve your matches.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Profile — SkillMatch" },
+      { name: "twitter:title", content: "Profile — TalentSync" },
       { name: "twitter:description", content: "Manage your session and resume." },
     ],
     links: [{ rel: "canonical", href: "/profile" }],

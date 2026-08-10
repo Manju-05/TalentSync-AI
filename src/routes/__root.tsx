@@ -79,10 +79,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "AI Job Portal" },
+      { title: "TalentSync" },
       { name: "description", content: "AI-powered job matching and career guidance portal." },
-      { name: "author", content: "AI Job Portal" },
-      { property: "og:site_name", content: "AI Job Portal" },
+      { name: "author", content: "TalentSync" },
+      { property: "og:site_name", content: "TalentSync" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

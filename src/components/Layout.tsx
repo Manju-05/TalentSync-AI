@@ -20,7 +20,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <span className="grid h-8 w-8 place-items-center rounded-xl bg-primary text-primary-foreground">
               <Briefcase className="h-4 w-4" />
             </span>
-            SkillMatch
+            TalentSync
           </Link>
           <div className="ml-auto md:hidden">
             <ThemeToggle />
@@ -47,7 +47,7 @@ export function Layout({ children }: { children: ReactNode }) {
       <div className="flex min-h-screen flex-1 flex-col">
         <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-8 md:py-10">{children}</main>
         <footer className="border-t border-border/60 py-6 text-center text-sm text-muted-foreground">
-          © 2026 SkillMatch
+          Copyright 2026 Manjunath TalentSync
         </footer>
       </div>
     </div>

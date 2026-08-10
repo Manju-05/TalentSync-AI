@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const KEY = "skillmatch_user_id";
+const KEY = "talentsync_user_id";
 
 export function getUserId(): string | null {
   if (typeof window === "undefined") return null;
@@ -17,7 +17,7 @@ export function setUserId(id: string) {
   } catch {
     /* ignore */
   }
-  window.dispatchEvent(new Event("skillmatch-user"));
+  window.dispatchEvent(new Event("talentsync-user"));
 }
 
 export function clearUserId() {
@@ -26,7 +26,7 @@ export function clearUserId() {
   } catch {
     /* ignore */
   }
-  window.dispatchEvent(new Event("skillmatch-user"));
+  window.dispatchEvent(new Event("talentsync-user"));
 }
 
 /** Returns [userId, ready] — ready is false until hydration finishes. */
@@ -38,10 +38,10 @@ export function useUserId(): [string | null, boolean] {
     const sync = () => setId(getUserId());
     sync();
     setReady(true);
-    window.addEventListener("skillmatch-user", sync);
+    window.addEventListener("talentsync-user", sync);
     window.addEventListener("storage", sync);
     return () => {
-      window.removeEventListener("skillmatch-user", sync);
+      window.removeEventListener("talentsync-user", sync);
       window.removeEventListener("storage", sync);
     };
   }, []);

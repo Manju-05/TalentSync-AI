@@ -11,20 +11,20 @@ import { api } from "@/lib/api";
 export const Route = createFileRoute("/guidance")({
   head: () => ({
     meta: [
-      { title: "Career Coach — SkillMatch" },
+      { title: "Career Coach — TalentSync" },
       {
         name: "description",
         content:
-          "Chat with the SkillMatch AI career coach for personalised advice on skills, roles and interviews.",
+          "Chat with the TalentSync AI career coach for personalised advice on skills, roles and interviews.",
       },
-      { property: "og:title", content: "Career Coach — SkillMatch" },
+      { property: "og:title", content: "Career Coach — TalentSync" },
       {
         property: "og:description",
         content: "Personalised AI advice on skills, roles and interviews.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Career Coach — SkillMatch" },
+      { name: "twitter:title", content: "Career Coach — TalentSync" },
       { name: "twitter:description", content: "Personalised AI career advice." },
     ],
     links: [{ rel: "canonical", href: "/guidance" }],
