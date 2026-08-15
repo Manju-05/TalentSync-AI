@@ -132,8 +132,15 @@ function RegisterPage() {
 
         <form
           onSubmit={handleSubmit}
-          className="mt-8 space-y-5 rounded-2xl border border-border/60 bg-card p-6 shadow-sm sm:p-8"
+          className="mt-8 space-y-5 rounded-2xl border border-border/60 bg-card p-5 shadow-sm sm:p-8"
         >
+          <div className="flex items-center justify-between border-b border-border/60 pb-4">
+            <div>
+              <p className="text-sm font-semibold text-foreground">Career profile</p>
+              <p className="mt-1 text-xs text-muted-foreground">The essentials for more relevant opportunities.</p>
+            </div>
+            <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">Step 1 of 1</span>
+          </div>
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Full Name" htmlFor="full_name" error={fieldErrors.full_name}>
               <Input
@@ -207,9 +214,10 @@ function RegisterPage() {
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {loading ? "Registering..." : "Register"}
           </Button>
+          <p className="text-center text-xs text-muted-foreground">Fields marked * are required.</p>
         </form>
 
-        <div className="mt-6 rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
+        <div className="mt-6 rounded-2xl border border-border/60 bg-card p-5 shadow-sm sm:p-6">
           {showExisting ? (
             <form onSubmit={signInWithId} className="flex flex-col gap-3 sm:flex-row sm:items-end">
               <div className="flex-1 space-y-2">

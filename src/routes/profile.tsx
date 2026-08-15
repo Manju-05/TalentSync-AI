@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { FileUp, LogOut, ExternalLink } from "lucide-react";
+import { FileUp, LogOut, ExternalLink, ShieldCheck, Sparkles } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { RequireUser } from "@/components/RequireUser";
 import { Button } from "@/components/ui/button";
@@ -44,10 +44,17 @@ function ProfilePage() {
         <RequireUser>
           {(userId) => (
             <div className="mt-8 space-y-4">
-              <div className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
-                <p className="text-sm text-muted-foreground">Signed in as</p>
+              <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm sm:p-6">
+                <div className="flex items-center gap-2 text-foreground">
+                  <ShieldCheck className="h-4 w-4 text-primary" />
+                  <p className="font-semibold">Your workspace</p>
+                </div>
+                <p className="mt-3 text-sm text-muted-foreground">Active profile ID</p>
                 <p className="mt-1 break-all font-mono text-sm font-semibold text-foreground">
                   {userId}
+                </p>
+                <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                  Keep this ID private. It connects your saved roles, applications and career guidance.
                 </p>
                 <Button
                   variant="outline"
@@ -63,18 +70,17 @@ function ProfilePage() {
                 </Button>
               </div>
 
-              <div className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
+              <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm sm:p-6">
                 <div className="flex items-center gap-2 text-foreground">
-                  <FileUp className="h-4 w-4 text-primary" />
-                  <p className="font-semibold">Upload your resume</p>
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <p className="font-semibold">Improve your recommendations</p>
                 </div>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Upload a PDF resume and our AI extracts your skills into your profile. After
-                  uploading, your job matches get noticeably sharper.
+                  Upload a PDF resume and TalentSync can use your skills and experience to make job recommendations more relevant.
                 </p>
                 <Button asChild className="mt-4 rounded-full">
                   <a href={RESUME_UPLOAD_URL} target="_blank" rel="noreferrer">
-                    Open resume upload <ExternalLink className="ml-1.5 h-4 w-4" />
+                    <FileUp className="mr-1.5 h-4 w-4" /> Upload resume <ExternalLink className="ml-1.5 h-4 w-4" />
                   </a>
                 </Button>
               </div>

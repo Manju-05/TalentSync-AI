@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Bell, ExternalLink, Loader2 } from "lucide-react";
+import { Bell, ExternalLink, Loader2, Search } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { RequireUser } from "@/components/RequireUser";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import { ErrorState } from "@/components/ErrorState";
 import { api, type Application } from "@/lib/api";
 
 const STATUSES = ["saved", "applied", "interviewing", "offer", "rejected"];
+const EMPTY_APPLICATIONS: Application[] = [];
 
 export const Route = createFileRoute("/applications")({
   head: () => ({
@@ -62,6 +63,7 @@ function ApplicationBoard({ userId }: { userId: string }) {
   const [apps, setApps] = useState<Application[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [keyword, setKeyword] = useState("");
 
   async function load() {
     setLoading(true);
@@ -81,6 +83,15 @@ function ApplicationBoard({ userId }: { userId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
+  const applicationList = apps ?? EMPTY_APPLICATIONS;
+  const visibleApps = useMemo(() => {
+    const query = keyword.trim().toLowerCase();
+    if (!query) return applicationList;
+    return applicationList.filter((app) =>
+      [app.job_title, app.company, app.status, app.notes].join(" ").toLowerCase().includes(query),
+    );
+  }, [applicationList, keyword]);
+
   if (loading)
     return (
       <div className="mt-8 space-y-3">
@@ -90,7 +101,7 @@ function ApplicationBoard({ userId }: { userId: string }) {
       </div>
     );
   if (error) return <ErrorState message={error} onRetry={() => void load()} />;
-  if (!apps || apps.length === 0)
+  if (applicationList.length === 0)
     return (
       <div className="mt-8">
         <EmptyState
@@ -100,32 +111,60 @@ function ApplicationBoard({ userId }: { userId: string }) {
       </div>
     );
 
-  const known = STATUSES.filter((s) => apps.some((a) => (a.status ?? "saved") === s));
-  const extra = [...new Set(apps.map((a) => a.status ?? "saved"))].filter(
+  const known = STATUSES.filter((s) => visibleApps.some((a) => (a.status ?? "saved") === s));
+  const extra = [...new Set(visibleApps.map((a) => a.status ?? "saved"))].filter(
     (s) => !STATUSES.includes(s),
   );
+  const statuses = [...known, ...extra];
 
   return (
     <div className="mt-8 space-y-8">
-      {[...known, ...extra].map((status) => (
-        <section key={status}>
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            {status} ({apps.filter((a) => (a.status ?? "saved") === status).length})
-          </h2>
-          <div className="mt-3 grid gap-3">
-            {apps
-              .filter((a) => (a.status ?? "saved") === status)
-              .map((app) => (
-                <AppRow
-                  key={app.app_id ?? app.job_hash}
-                  app={app}
-                  userId={userId}
-                  onChanged={() => void load()}
-                />
-              ))}
-          </div>
-        </section>
-      ))}
+      <div className="rounded-2xl border border-border/60 bg-card p-3 shadow-sm sm:flex sm:items-center sm:gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Label htmlFor="application-filter" className="sr-only">Search applications</Label>
+          <Input
+            id="application-filter"
+            value={keyword}
+            onChange={(event) => setKeyword(event.target.value)}
+            placeholder="Search roles, companies, notes..."
+            className="border-0 bg-transparent pl-9 shadow-none focus-visible:ring-0"
+          />
+        </div>
+        <p aria-live="polite" className="mt-2 shrink-0 text-xs text-muted-foreground sm:mt-0">
+          {visibleApps.length} of {applicationList.length} tracked
+        </p>
+      </div>
+
+      {visibleApps.length === 0 ? (
+        <EmptyState
+          title="No applications found"
+          description="Try a different search term, or save a role from Job Matches."
+        />
+      ) : (
+        statuses.map((status) => (
+          <section key={status}>
+            <h2 className="flex items-center gap-2 text-sm font-semibold capitalize text-foreground">
+              {status}
+              <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                {visibleApps.filter((a) => (a.status ?? "saved") === status).length}
+              </span>
+            </h2>
+            <div className="mt-3 grid gap-3">
+              {visibleApps
+                .filter((a) => (a.status ?? "saved") === status)
+                .map((app) => (
+                  <AppRow
+                    key={app.app_id ?? app.job_hash}
+                    app={app}
+                    userId={userId}
+                    onChanged={() => void load()}
+                  />
+                ))}
+            </div>
+          </section>
+        ))
+      )}
     </div>
   );
 }
@@ -161,7 +200,7 @@ function AppRow({
   return (
     <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
       <div className="flex flex-wrap items-start gap-3">
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           <p className="font-semibold text-foreground">{app.job_title ?? "Untitled role"}</p>
           <p className="text-sm text-muted-foreground">{app.company}</p>
           {app.applied_at && (

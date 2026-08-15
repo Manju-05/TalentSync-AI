@@ -98,6 +98,8 @@ function Summary({ userId }: { userId: string }) {
         </div>
       )}
 
+      {!loading && <FocusPanel matches={matches ?? 0} applications={apps ?? []} />}
+
       {Object.keys(byStatus).length > 0 && (
         <div className="stagger-children flex flex-wrap gap-2">
           {Object.entries(byStatus).map(([status, count]) => (
@@ -116,6 +118,40 @@ function Summary({ userId }: { userId: string }) {
         <QuickLink to="/guidance" label="Ask the coach" icon={MessageSquare} />
         <QuickLink to="/profile" label="Profile & resume" icon={User} />
       </div>
+    </div>
+  );
+}
+
+function FocusPanel({ matches, applications }: { matches: number; applications: Application[] }) {
+  const saved = applications.filter((app) => (app.status ?? "saved") === "saved").length;
+  const interviewing = applications.filter((app) => app.status === "interviewing").length;
+  const title = interviewing
+    ? "Prepare for your upcoming conversations"
+    : saved
+      ? "Turn saved roles into applications"
+      : matches
+        ? "Review your latest opportunities"
+        : "Complete your profile to unlock better matches";
+  const description = interviewing
+    ? `${interviewing} application${interviewing === 1 ? " is" : "s are"} in the interview stage.`
+    : saved
+      ? `${saved} saved role${saved === 1 ? " is" : "s are"} ready for your next step.`
+      : matches
+        ? `${matches} opportunity${matches === 1 ? " is" : "ies are"} ready to review.`
+        : "Add your resume and preferences to make the recommendations more useful.";
+  const to = interviewing || saved ? "/applications" : matches ? "/jobs" : "/profile";
+  const action = interviewing ? "Open application tracker" : saved ? "Review saved roles" : matches ? "Browse matches" : "Complete profile";
+
+  return (
+    <div className="rounded-2xl border border-primary/15 bg-primary/[0.04] p-5 sm:flex sm:items-center sm:justify-between sm:gap-6">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Your next step</p>
+        <h2 className="mt-1 font-display text-lg font-bold text-foreground">{title}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+      </div>
+      <Link to={to} className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-primary transition-colors hover:text-primary/80 sm:mt-0 sm:shrink-0">
+        {action} <ArrowRight className="h-4 w-4" />
+      </Link>
     </div>
   );
 }
