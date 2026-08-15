@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Briefcase, ClipboardList, MessageSquare, User, ArrowRight } from "lucide-react";
-import { Layout } from "@/components/Layout";
+import { motion } from "framer-motion";
 import { RequireUser } from "@/components/RequireUser";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api, type Application } from "@/lib/api";
@@ -32,13 +32,19 @@ export const Route = createFileRoute("/")({
 
 function DashboardPage() {
   return (
-    <Layout>
-      <h1 className="animate-fade-up text-3xl font-bold tracking-tight text-foreground md:text-4xl">Dashboard</h1>
-      <p className="mt-2 animate-fade-up text-sm text-muted-foreground">
-        Your matches, applications and next steps at a glance.
-      </p>
+    <>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="animate-fade-up font-display text-4xl font-extrabold tracking-tight text-foreground md:text-5xl">Dashboard</h1>
+          <p className="mt-3 animate-fade-up text-base text-muted-foreground sm:text-lg">
+            Your matches, applications and next steps at a glance.
+          </p>
+        </div>
+        <img src="/logo.png" alt="TalentSync Branding" className="hidden sm:block h-20 w-20 animate-fade-up rounded-2xl shadow-md" style={{ animationDelay: "0.1s" }} />
+      </div>
       <RequireUser>{(userId) => <Summary userId={userId} />}</RequireUser>
-    </Layout>
+      <FeaturesSection />
+    </>
   );
 }
 
@@ -199,5 +205,86 @@ function QuickLink({
       {label}
       <ArrowRight className="ml-auto h-4 w-4 text-muted-foreground transition-transform duration-200 group-hover:translate-x-1 group-hover:text-primary" />
     </Link>
+  );
+}
+
+function FeaturesSection() {
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.15 },
+    },
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
+  };
+
+  return (
+    <div className="mt-20 animate-fade-up border-t border-border/40 pt-16 pb-12">
+      <div className="mb-12 text-center">
+        <h2 className="font-display text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+          How TalentSync <span className="gradient-text">supercharges</span> your career
+        </h2>
+        <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
+          We combine cutting-edge AI with seamless automation to ensure you never miss an opportunity.
+        </p>
+      </div>
+
+      <motion.div
+        variants={container}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, margin: "-50px" }}
+        className="flex flex-col gap-20 md:gap-32"
+      >
+        <motion.div variants={item} className="flex flex-col items-center gap-10 md:flex-row md:gap-20">
+          <div className="flex-1 space-y-5 md:order-1">
+            <h3 className="font-display text-3xl font-bold text-foreground">Smart Automation</h3>
+            <p className="text-lg leading-relaxed text-muted-foreground">
+              Receive regular updates and skill-matched jobs directly in your inbox. No need to search manually—apply seamlessly with one click.
+            </p>
+          </div>
+          <div className="group relative w-full shrink-0 md:w-[340px] md:order-2">
+            <div className="aspect-[4/3] w-full overflow-hidden rounded-[2rem] border border-white/5 bg-transparent shadow-2xl shadow-black/50 transition-all duration-700 ease-out hover:-translate-y-2 hover:border-primary/30 hover:shadow-primary/20">
+              <div className="absolute inset-0 z-10 bg-gradient-to-tr from-primary/10 to-transparent mix-blend-overlay transition-opacity duration-700 group-hover:opacity-0 pointer-events-none" />
+              <img src="/feature-automation.png" alt="AI Automation" className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div variants={item} className="flex flex-col items-center gap-10 md:flex-row md:gap-20">
+          <div className="flex-1 space-y-5 md:order-2">
+            <h3 className="font-display text-3xl font-bold text-foreground">Visual Tracking</h3>
+            <p className="text-lg leading-relaxed text-muted-foreground">
+              A clearly structured board organizes your applications beautifully into Applied, Shortlisted, Interviewing, and Offered stages.
+            </p>
+          </div>
+          <div className="group relative w-full shrink-0 md:w-[340px] md:order-1">
+            <div className="aspect-[4/3] w-full overflow-hidden rounded-[2rem] border border-white/5 bg-transparent shadow-2xl shadow-black/50 transition-all duration-700 ease-out hover:-translate-y-2 hover:border-primary/30 hover:shadow-primary/20">
+              <div className="absolute inset-0 z-10 bg-gradient-to-tr from-primary/10 to-transparent mix-blend-overlay transition-opacity duration-700 group-hover:opacity-0 pointer-events-none" />
+              <img src="/feature-tracker.png" alt="Application Tracker" className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div variants={item} className="flex flex-col items-center gap-10 md:flex-row md:gap-20">
+          <div className="flex-1 space-y-5 md:order-1">
+            <h3 className="font-display text-3xl font-bold text-foreground">AI Career Coach</h3>
+            <p className="text-lg leading-relaxed text-muted-foreground">
+              Get personalized resume tips, future learning roadmaps, and interview preparation tailored exactly to your unique skill set.
+            </p>
+          </div>
+          <div className="group relative w-full shrink-0 md:w-[340px] md:order-2">
+            <div className="aspect-[4/3] w-full overflow-hidden rounded-[2rem] border border-white/5 bg-transparent shadow-2xl shadow-black/50 transition-all duration-700 ease-out hover:-translate-y-2 hover:border-primary/30 hover:shadow-primary/20">
+              <div className="absolute inset-0 z-10 bg-gradient-to-tr from-primary/10 to-transparent mix-blend-overlay transition-opacity duration-700 group-hover:opacity-0 pointer-events-none" />
+              <img src="/feature-coach.png" alt="Career Coach" className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    </div>
   );
 }

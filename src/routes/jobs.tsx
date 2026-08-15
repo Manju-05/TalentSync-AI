@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Bookmark, CheckCircle2, ExternalLink, Loader2, RefreshCw, Search } from "lucide-react";
-import { Layout } from "@/components/Layout";
+import { motion } from "framer-motion";
 import { RequireUser } from "@/components/RequireUser";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,15 +36,17 @@ export const Route = createFileRoute("/jobs")({
 
 function JobsPage() {
   return (
-    <Layout>
-      <div className="mx-auto max-w-3xl">
-        <h1 className="animate-fade-up text-3xl font-bold tracking-tight text-foreground md:text-4xl">Job Matches</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Roles ranked by how well they fit your profile.
-        </p>
+    <>
+      <div className="mx-auto max-w-4xl">
+        <div className="mb-8">
+          <h1 className="animate-fade-up font-display text-4xl font-extrabold tracking-tight text-foreground md:text-5xl">Job Matches</h1>
+          <p className="mt-3 animate-fade-up text-base text-muted-foreground sm:text-lg">
+            Roles ranked by how well they fit your profile.
+          </p>
+        </div>
         <RequireUser>{(userId) => <JobList userId={userId} />}</RequireUser>
       </div>
-    </Layout>
+    </>
   );
 }
 
@@ -100,16 +102,16 @@ function JobList({ userId }: { userId: string }) {
     );
 
     if (sortBy === "title") {
-      return matches.toSorted((a, b) =>
+      return [...matches].sort((a: any, b: any) =>
         (a.title ?? a.job_title ?? "").localeCompare(b.title ?? b.job_title ?? ""),
       );
     }
     if (sortBy === "company") {
-      return matches.toSorted((a, b) => (a.company ?? "").localeCompare(b.company ?? ""));
+      return [...matches].sort((a: any, b: any) => (a.company ?? "").localeCompare(b.company ?? ""));
     }
     if (sortBy === "newest") {
-      return matches.toSorted(
-        (a, b) => (Date.parse(b.posted_at ?? "") || 0) - (Date.parse(a.posted_at ?? "") || 0),
+      return [...matches].sort(
+        (a: any, b: any) => (Date.parse(b.posted_at ?? "") || 0) - (Date.parse(a.posted_at ?? "") || 0),
       );
     }
     return matches;
@@ -164,16 +166,34 @@ function JobList({ userId }: { userId: string }) {
           action={{ label: "Update profile", to: "/profile" }}
         />
       ) : (
-        <div className="grid gap-4">
-          {filtered.map((job) => (
-            <MatchCard
+        <motion.div
+          className="grid gap-4"
+          initial="hidden"
+          animate="show"
+          variants={{
+            hidden: { opacity: 0 },
+            show: {
+              opacity: 1,
+              transition: { staggerChildren: 0.1 },
+            },
+          }}
+        >
+          {filtered.map((job: any) => (
+            <motion.div
               key={jobHash(job)}
-              job={job}
-              busy={busy}
-              onTrack={(action) => void track(job, action)}
-            />
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
+              }}
+            >
+              <MatchCard
+                job={job}
+                busy={busy}
+                onTrack={(action) => void track(job, action)}
+              />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
     </div>
   );
@@ -192,8 +212,9 @@ function MatchCard({
   const hash = jobHash(job);
 
   return (
-    <div className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg">
-      <div className="flex items-start gap-3">
+    <div className="group rounded-2xl border border-border/60 bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01] hover:border-primary/50 hover:shadow-lg relative overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+      <div className="relative flex items-start gap-3">
         <div className="min-w-0 flex-1">
           <h2 className="text-lg font-semibold text-foreground">{title}</h2>
           <p className="mt-1 text-sm text-muted-foreground">

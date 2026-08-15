@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Loader2, LogIn } from "lucide-react";
-import { Layout } from "@/components/Layout";
 import { TagInput } from "@/components/TagInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -123,7 +122,7 @@ function RegisterPage() {
   }
 
   return (
-    <Layout>
+    <>
       <div className="mx-auto max-w-2xl">
         <h1 className="animate-fade-up text-3xl font-bold tracking-tight text-foreground md:text-4xl">Create your profile</h1>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -252,7 +251,7 @@ function RegisterPage() {
           </Link>
         </p>
       </div>
-    </Layout>
+    </>
   );
 }
 

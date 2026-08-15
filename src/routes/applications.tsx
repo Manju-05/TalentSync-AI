@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Bell, ExternalLink, Loader2, Search } from "lucide-react";
-import { Layout } from "@/components/Layout";
 import { RequireUser } from "@/components/RequireUser";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,7 +46,7 @@ export const Route = createFileRoute("/applications")({
 
 function ApplicationsPage() {
   return (
-    <Layout>
+    <>
       <div className="mx-auto max-w-4xl">
         <h1 className="animate-fade-up text-3xl font-bold tracking-tight text-foreground md:text-4xl">My Applications</h1>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -55,7 +54,7 @@ function ApplicationsPage() {
         </p>
         <RequireUser>{(userId) => <ApplicationBoard userId={userId} />}</RequireUser>
       </div>
-    </Layout>
+    </>
   );
 }
 
