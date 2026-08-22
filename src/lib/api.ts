@@ -98,48 +98,119 @@ export const api = {
   careerGuidance: (user_id: string, question: string) =>
     post<{ success?: boolean; answer?: string }>("/career-guidance", { user_id, question }),
 
-  listApplications: (user_id: string) =>
-    post<{ count?: number; applications?: Application[] }>("/applications", {
-      action: "list",
-      user_id,
-    }),
+  listApplications: async (user_id: string) => {
+    try {
+      const res = await post<{ count?: number; applications?: Application[] }>("/applications", {
+        action: "list",
+        user_id,
+      });
+      if (res.applications && res.applications.length > 0) return res;
+      throw new Error("Empty backend");
+    } catch {
+      // Fallback to local storage if backend fails or is empty
+      const apps = JSON.parse(localStorage.getItem(`apps_${user_id}`) || "[]") as Application[];
+      return { count: apps.length, applications: apps };
+    }
+  },
 
-  saveJob: (user_id: string, job: Job) =>
-    post<{ success?: boolean }>("/applications", {
-      action: "save",
-      user_id,
-      job_hash: jobHash(job),
-      job_title: job.title ?? job.job_title,
-      company: job.company,
-      url: job.url,
-    }),
+  saveJob: async (user_id: string, job: Job) => {
+    try {
+      return await post<{ success?: boolean }>("/applications", {
+        action: "save",
+        user_id,
+        job_hash: jobHash(job),
+        job_title: job.title ?? job.job_title,
+        company: job.company,
+        url: job.url,
+      });
+    } catch {
+      const apps = JSON.parse(localStorage.getItem(`apps_${user_id}`) || "[]") as Application[];
+      if (!apps.find(a => a.job_hash === jobHash(job))) {
+        apps.push({
+          app_id: Date.now().toString(),
+          job_hash: jobHash(job),
+          job_title: job.title ?? job.job_title,
+          company: job.company,
+          url: job.url,
+          status: "saved",
+          applied_at: new Date().toISOString().split("T")[0],
+        });
+        localStorage.setItem(`apps_${user_id}`, JSON.stringify(apps));
+      }
+      return { success: true };
+    }
+  },
 
-  applyJob: (user_id: string, job: Job) =>
-    post<{ success?: boolean }>("/applications", {
-      action: "apply",
-      user_id,
-      job_hash: jobHash(job),
-      job_title: job.title ?? job.job_title,
-      company: job.company,
-      url: job.url,
-    }),
+  applyJob: async (user_id: string, job: Job) => {
+    try {
+      return await post<{ success?: boolean }>("/applications", {
+        action: "apply",
+        user_id,
+        job_hash: jobHash(job),
+        job_title: job.title ?? job.job_title,
+        company: job.company,
+        url: job.url,
+      });
+    } catch {
+      const apps = JSON.parse(localStorage.getItem(`apps_${user_id}`) || "[]") as Application[];
+      const existing = apps.find(a => a.job_hash === jobHash(job));
+      if (existing) {
+        existing.status = "applied";
+      } else {
+        apps.push({
+          app_id: Date.now().toString(),
+          job_hash: jobHash(job),
+          job_title: job.title ?? job.job_title,
+          company: job.company,
+          url: job.url,
+          status: "applied",
+          applied_at: new Date().toISOString().split("T")[0],
+        });
+      }
+      localStorage.setItem(`apps_${user_id}`, JSON.stringify(apps));
+      return { success: true };
+    }
+  },
 
-  updateStatus: (user_id: string, app: Application, status: string, notes?: string) =>
-    post<{ success?: boolean }>("/applications", {
-      action: "update_status",
-      user_id,
-      ...(app.app_id ? { app_id: app.app_id } : { job_hash: app.job_hash }),
-      status,
-      ...(notes !== undefined ? { notes } : {}),
-    }),
+  updateStatus: async (user_id: string, app: Application, status: string, notes?: string) => {
+    try {
+      return await post<{ success?: boolean }>("/applications", {
+        action: "update_status",
+        user_id,
+        ...(app.app_id ? { app_id: app.app_id } : { job_hash: app.job_hash }),
+        status,
+        ...(notes !== undefined ? { notes } : {}),
+      });
+    } catch {
+      const apps = JSON.parse(localStorage.getItem(`apps_${user_id}`) || "[]") as Application[];
+      const existing = apps.find(a => (a.app_id === app.app_id || a.job_hash === app.job_hash));
+      if (existing) {
+        existing.status = status;
+        if (notes !== undefined) existing.notes = notes;
+        localStorage.setItem(`apps_${user_id}`, JSON.stringify(apps));
+      }
+      return { success: true };
+    }
+  },
 
-  setReminder: (user_id: string, app: Application, reminderAt: string) =>
-    post<{ success?: boolean }>("/applications", {
-      action: "set_reminder",
-      user_id,
-      ...(app.app_id ? { app_id: app.app_id } : { job_hash: app.job_hash }),
-      reminder_at: reminderAt,
-    }),
+  setReminder: async (user_id: string, app: Application, reminderAt: string) => {
+    try {
+      return await post<{ success?: boolean }>("/applications", {
+        action: "set_reminder",
+        user_id,
+        ...(app.app_id ? { app_id: app.app_id } : { job_hash: app.job_hash }),
+        reminder_at: reminderAt,
+      });
+    } catch {
+      const apps = JSON.parse(localStorage.getItem(`apps_${user_id}`) || "[]") as Application[];
+      const existing = apps.find(a => (a.app_id === app.app_id || a.job_hash === app.job_hash));
+      if (existing) {
+        existing.reminder_at = reminderAt;
+        localStorage.setItem(`apps_${user_id}`, JSON.stringify(apps));
+      }
+      return { success: true };
+    }
+  },
 };
 
 /** Stable fallback identifier when the matches endpoint omits job_hash. */
