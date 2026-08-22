@@ -67,8 +67,34 @@ export type Application = {
 export const api = {
   register: (input: RegisterInput) => post<RegisterResponse>("/register", input),
 
-  jobMatches: (user_id: string) =>
-    post<{ success?: boolean; count?: number; jobs?: Job[] }>("/job-updates", { user_id }),
+  jobMatches: async (user_id: string) => {
+    const res = await fetch(`${API_BASE}/job-updates`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id }),
+    });
+    const text = await res.text();
+    let data: any = null;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch {
+      data = null;
+    }
+    if (!res.ok) throw new Error(data?.error ?? extractApiError(res.status, text));
+    
+    // If n8n returns a flat array of jobs: [ { job_title: "..." }, ... ]
+    if (Array.isArray(data)) {
+      // Check if it's n8n's nested array format: [ { jobs: [...] } ]
+      if (data.length > 0 && Array.isArray(data[0].jobs)) {
+        return data[0] as { success?: boolean; count?: number; jobs?: Job[] };
+      }
+      // Otherwise, assume the array itself is the list of jobs
+      return { success: true, count: data.length, jobs: data as Job[] };
+    }
+    
+    // If it returns a proper object: { jobs: [...] }
+    return (data ?? {}) as { success?: boolean; count?: number; jobs?: Job[] };
+  },
 
   careerGuidance: (user_id: string, question: string) =>
     post<{ success?: boolean; answer?: string }>("/career-guidance", { user_id, question }),
