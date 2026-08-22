@@ -83,8 +83,10 @@ function JobList({ userId }: { userId: string }) {
       if (action === "save") await api.saveJob(userId, job);
       else await api.applyJob(userId, job);
       toast.success(action === "save" ? "Saved to your applications" : "Marked as applied");
+      return true;
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not update");
+      return false;
     } finally {
       setBusy(null);
     }
@@ -206,10 +208,18 @@ function MatchCard({
 }: {
   job: Job;
   busy: string | null;
-  onTrack: (action: "save" | "apply") => void;
+  onTrack: (action: "save" | "apply") => Promise<boolean>;
 }) {
+  const [actionStatus, setActionStatus] = useState<"save" | "apply" | null>(null);
   const title = job.title ?? job.job_title ?? "Untitled role";
   const hash = jobHash(job);
+
+  async function handleTrack(action: "save" | "apply") {
+    const success = await onTrack(action);
+    if (success) {
+      setActionStatus(action);
+    }
+  }
 
   return (
     <div className="group rounded-2xl border border-border/60 bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01] hover:border-primary/50 hover:shadow-lg relative overflow-hidden">
@@ -244,30 +254,30 @@ function MatchCard({
           </Button>
         )}
         <Button
-          variant="outline"
+          variant={actionStatus === "save" ? "default" : "outline"}
           className="rounded-full"
-          disabled={busy === `${hash}-save`}
-          onClick={() => onTrack("save")}
+          disabled={actionStatus !== null || busy === `${hash}-save`}
+          onClick={() => void handleTrack("save")}
         >
           {busy === `${hash}-save` ? (
             <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
           ) : (
             <Bookmark className="mr-1.5 h-4 w-4" />
           )}
-          Save
+          {actionStatus === "save" ? "Saved" : "Save"}
         </Button>
         <Button
-          variant="outline"
+          variant={actionStatus === "apply" ? "default" : "outline"}
           className="rounded-full"
-          disabled={busy === `${hash}-apply`}
-          onClick={() => onTrack("apply")}
+          disabled={actionStatus !== null || busy === `${hash}-apply`}
+          onClick={() => void handleTrack("apply")}
         >
           {busy === `${hash}-apply` ? (
             <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
           ) : (
             <CheckCircle2 className="mr-1.5 h-4 w-4" />
           )}
-          Mark Applied
+          {actionStatus === "apply" ? "Applied" : "Mark Applied"}
         </Button>
       </div>
     </div>
