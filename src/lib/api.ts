@@ -68,10 +68,9 @@ export const api = {
   register: (input: RegisterInput) => post<RegisterResponse>("/register", input),
 
   jobMatches: async (user_id: string) => {
-    const res = await fetch(`${API_BASE}/job-updates`, {
-      method: "POST",
+    const res = await fetch(`${API_BASE}/job-updates?user_id=${user_id}`, {
+      method: "GET",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id }),
     });
     const text = await res.text();
     let data: any = null;
