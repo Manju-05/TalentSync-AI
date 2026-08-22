@@ -1,5 +1,5 @@
-export const API_BASE = "https://mahadev-ujjain.app.n8n.cloud/webhook";
-export const RESUME_UPLOAD_URL = "https://mahadev-ujjain.app.n8n.cloud/form/resume-upload";
+export const API_BASE = "https://jaishreemahakal.app.n8n.cloud/webhook";
+export const RESUME_UPLOAD_URL = "https://jaishreemahakal.app.n8n.cloud/form/resume-upload";
 
 import { extractApiError } from "./api-error";
 
