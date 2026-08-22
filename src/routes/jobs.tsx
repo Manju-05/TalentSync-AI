@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Bookmark, CheckCircle2, ExternalLink, Loader2, RefreshCw, Search } from "lucide-react";
@@ -51,6 +51,7 @@ function JobsPage() {
 }
 
 function JobList({ userId }: { userId: string }) {
+  const navigate = useNavigate();
   const [jobs, setJobs] = useState<Job[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -83,6 +84,7 @@ function JobList({ userId }: { userId: string }) {
       if (action === "save") await api.saveJob(userId, job);
       else await api.applyJob(userId, job);
       toast.success(action === "save" ? "Saved to your applications" : "Marked as applied");
+      void navigate({ to: "/applications" });
       return true;
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not update");
