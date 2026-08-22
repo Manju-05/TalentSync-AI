@@ -18,7 +18,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { api, type Application } from "@/lib/api";
 
-const STATUSES = ["saved", "applied", "screening", "shortlisted", "interviewed", "offer", "rejected"];
+const STATUSES = ["applied", "shortlisted", "offer", "rejected"];
 const EMPTY_APPLICATIONS: Application[] = [];
 
 export const Route = createFileRoute("/applications")({
