@@ -193,7 +193,7 @@ function JobList({ userId }: { userId: string }) {
               <MatchCard
                 job={job}
                 busy={busy}
-                onTrack={(action) => void track(job, action)}
+                onTrack={(action) => track(job, action)}
               />
             </motion.div>
           ))}

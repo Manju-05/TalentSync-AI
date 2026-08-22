@@ -134,7 +134,7 @@ export const api = {
           url: job.url,
           status: "saved",
           applied_at: new Date().toISOString().split("T")[0],
-        });
+        } as Application);
         localStorage.setItem(`apps_${user_id}`, JSON.stringify(apps));
       }
       return { success: true };
@@ -165,7 +165,7 @@ export const api = {
           url: job.url,
           status: "applied",
           applied_at: new Date().toISOString().split("T")[0],
-        });
+        } as Application);
       }
       localStorage.setItem(`apps_${user_id}`, JSON.stringify(apps));
       return { success: true };
