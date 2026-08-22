@@ -87,7 +87,7 @@ function ProfilePage() {
                   Upload a PDF resume and TalentSync can use your skills and experience to make job recommendations more relevant.
                 </p>
                 <Button asChild className="mt-4 rounded-full">
-                  <a href={RESUME_UPLOAD_URL} target="_blank" rel="noreferrer">
+                  <a href={`${RESUME_UPLOAD_URL}?user_id=${userId}`} target="_blank" rel="noreferrer">
                     <FileUp className="mr-1.5 h-4 w-4" /> Upload resume <ExternalLink className="ml-1.5 h-4 w-4" />
                   </a>
                 </Button>
